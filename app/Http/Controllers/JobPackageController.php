@@ -21,12 +21,18 @@ class JobPackageController extends Controller
 
     public function index(Request $request)
     {
+        $statusFilter = $request->get('status_filter', 'semua');
+        $search = $request->get('search');
+        $sort = $request->get('sort', 'latest');
+
+        // Base query dengan Eager Loading agar query tetap optimal
         $baseQuery = JobPackage::with(['creator', 'pos', 'suratBakDocs', 'permintaanDaris']);
 
+        // Filter Pencarian (Gabungan seluruh kolom & tabel relasi)
         if ($request->filled('search')) {
-            $search = $request->search;
             $baseQuery->where(function ($q) use ($search) {
                 $q->where('job_package', 'like', "%{$search}%")
+                    ->orWhere('no_service_notifikasi', 'like', "%{$search}%")
                     ->orWhere('no_service_order', 'like', "%{$search}%")
                     ->orWhere('no_po', 'like', "%{$search}%")
                     ->orWhere('no_surat_bak_doc', 'like', "%{$search}%")
@@ -44,7 +50,7 @@ class JobPackageController extends Controller
             });
         }
 
-        $sort = $request->get('sort', 'latest');
+        // Helper closure untuk pengurutan data
         $applySort = function ($query) use ($sort) {
             match ($sort) {
                 'oldest'        => $query->oldest(),
@@ -57,32 +63,53 @@ class JobPackageController extends Controller
             };
         };
 
-        // 1. Query Job Package Sedang Berjalan (Progres > 0% dan < 100%, Status bukan 'batal')
-        $runningQuery = (clone $baseQuery)
-            ->where('status', '!=', 'batal')
+        // Query khusus untuk paket pekerjaan aktif (tidak dibatalkan atau status NULL)
+        $activeQuery = (clone $baseQuery)->where(function ($q) {
+            $q->where('status', '!=', 'batal')
+              ->orWhereNull('status');
+        });
+
+        // 1. Belum Mulai (Progres <= 0, NULL, atau string kosong)
+        $notStartedQuery = (clone $activeQuery)->where(function ($q) {
+            $q->whereRaw("CAST(REPLACE(NULLIF(hasil_progres, ''), ',', '.') AS DECIMAL(10,2)) <= 0")
+              ->orWhereNull('hasil_progres')
+              ->orWhere('hasil_progres', '')
+              ->orWhere('hasil_progres', '0'); // Penanganan string kosong di Database
+        });
+        $applySort($notStartedQuery);
+        $notStartedJobs = $notStartedQuery->paginate(10, ['*'], 'page_not_started')->withQueryString();
+
+        // 2. Sedang Berjalan (Progres 1% - 99%)
+        $runningQuery = (clone $activeQuery)
+            ->whereNotNull('hasil_progres')
+            ->where('hasil_progres', '!=', '')
             ->whereRaw("CAST(REPLACE(NULLIF(hasil_progres, ''), ',', '.') AS DECIMAL(10,2)) > 0")
             ->whereRaw("CAST(REPLACE(NULLIF(hasil_progres, ''), ',', '.') AS DECIMAL(10,2)) < 100");
         $applySort($runningQuery);
-        $runningJobs = $runningQuery->paginate(5, ['*'], 'page_running')->withQueryString();
+        $runningJobs = $runningQuery->paginate(10, ['*'], 'page_running')->withQueryString();
 
-        // 2. Query Job Package Selesai 100% (Progres >= 100%, Status bukan 'batal')
-        $doneQuery = (clone $baseQuery)
-            ->where('status', '!=', 'batal')
+        // 3. Selesai (Progres >= 100%)
+        $doneQuery = (clone $activeQuery)
+            ->whereNotNull('hasil_progres')
+            ->where('hasil_progres', '!=', '')
             ->whereRaw("CAST(REPLACE(NULLIF(hasil_progres, ''), ',', '.') AS DECIMAL(10,2)) >= 100");
         $applySort($doneQuery);
-        $doneJobs = $doneQuery->paginate(5, ['*'], 'page_done')->withQueryString();
+        $doneJobs = $doneQuery->paginate(10, ['*'], 'page_done')->withQueryString();
 
-        // 3. Query Job Package Tidak Dilanjutkan (Status 'batal' atau Progres <= 0)
-        $cancelledQuery = (clone $baseQuery)
-            ->where(function ($q) {
-                $q->where('status', 'batal')
-                  ->orWhereRaw("CAST(REPLACE(NULLIF(hasil_progres, ''), ',', '.') AS DECIMAL(10,2)) <= 0")
-                  ->orWhereNull('hasil_progres');
-            });
+        // 4. Dibatalkan (Khusus status 'batal')
+        $cancelledQuery = (clone $baseQuery)->where('status', 'batal');
         $applySort($cancelledQuery);
-        $cancelledJobs = $cancelledQuery->paginate(5, ['*'], 'page_cancelled')->withQueryString();
+        $cancelledJobs = $cancelledQuery->paginate(10, ['*'], 'page_cancelled')->withQueryString();
 
-        return view('admin.job_packages.index', compact('runningJobs', 'doneJobs', 'cancelledJobs'));
+        return view('admin.job_packages.index', compact(
+            'notStartedJobs',
+            'runningJobs',
+            'doneJobs',
+            'cancelledJobs',
+            'statusFilter',
+            'sort',
+            'search'
+        ));
     }
 
     public function show(JobPackage $jobPackage)
@@ -98,22 +125,27 @@ class JobPackageController extends Controller
 
     public function store(StoreJobPackageRequest $request)
     {
+        $jobPackage = null;
+
         DB::transaction(function () use ($request, &$jobPackage) {
             $validated = $request->validated();
             $validated['created_by'] = auth()->id();
 
-            $poList = $request->input('pos', $request->input('po_items', []));
-
+            $poList = $validated['pos'] ?? [];
             $data = array_diff_key($validated, array_flip($this->docFields));
-            unset($data['pos'], $data['po_items'], $data['surat_bak_docs'], $data['permintaan_dari']);
+            unset($data['pos'], $data['surat_bak_docs'], $data['permintaan_dari'], $data['periode']);
+
+            if ($request->has('items')) {
+                $data['items'] = array_values($request->input('items', []));
+            }
 
             $suratList = array_values(array_filter(
-                $request->input('surat_bak_docs', []),
+                $validated['surat_bak_docs'] ?? [],
                 fn ($v) => trim((string) $v) !== ''
             ));
 
             $permintaanList = array_values(array_filter(
-                $request->input('permintaan_dari', []),
+                $validated['permintaan_dari'] ?? [],
                 fn ($v) => trim((string) $v) !== ''
             ));
 
@@ -123,7 +155,7 @@ class JobPackageController extends Controller
                 $firstPo = reset($poList);
                 $data['no_po'] = $firstPo['no_po'] ?? $data['no_po'] ?? null;
 
-                $totalHarga = array_sum(array_column($poList, 'price')) ?: array_sum(array_column($poList, 'harga'));
+                $totalHarga = array_sum(array_column($poList, 'price'));
                 if ($totalHarga > 0) {
                     $data['final_harga'] = $totalHarga;
                 }
@@ -145,14 +177,13 @@ class JobPackageController extends Controller
                         $jobPackage->pos()->create([
                             'no_po'       => $item['no_po'],
                             'description' => $item['description'] ?? $item['nama_item'] ?? null,
-                            'price'       => $item['price'] ?? $item['harga'] ?? 0,
+                            'price'       => $item['price'] ?? 0,
                         ]);
                     }
                 }
             }
 
             $this->handleFileUploads($request, $jobPackage);
-
             $this->logActivity($jobPackage, 'created', 'Job Package baru ditambahkan.');
         });
 
@@ -171,19 +202,29 @@ class JobPackageController extends Controller
     {
         DB::transaction(function () use ($request, $jobPackage) {
             $validated = $request->validated();
-
             $poList = $request->input('pos', $request->input('po_items', []));
-
             $data = array_diff_key($validated, array_flip($this->docFields));
-            unset($data['pos'], $data['po_items'], $data['surat_bak_docs'], $data['permintaan_dari']);
+            
+            unset($data['pos'], $data['po_items'], $data['surat_bak_docs'], $data['permintaan_dari'], $data['periode']);
+
+            $jobPackageInput = $request->input('job_package');
+            if (is_array($jobPackageInput)) {
+                $data['job_package'] = implode(', ', array_filter($jobPackageInput));
+            } else {
+                $data['job_package'] = $jobPackageInput;
+            }
+
+            if ($request->has('items')) {
+                $data['items'] = array_values($request->input('items', []));
+            }
 
             $suratList = array_values(array_filter(
-                $request->input('surat_bak_docs', []),
+                (array) $request->input('surat_bak_docs', []),
                 fn ($v) => trim((string) $v) !== ''
             ));
 
             $permintaanList = array_values(array_filter(
-                $request->input('permintaan_dari', []),
+                (array) $request->input('permintaan_dari', []),
                 fn ($v) => trim((string) $v) !== ''
             ));
 
@@ -200,7 +241,6 @@ class JobPackageController extends Controller
             }
 
             $originalData = $jobPackage->getOriginal();
-
             $jobPackage->update($data);
 
             $changeDescription = $this->describeChanges($originalData, $jobPackage->getAttributes());
@@ -234,7 +274,7 @@ class JobPackageController extends Controller
 
         return redirect()
             ->route('admin.job-packages.show', $jobPackage)
-            ->with('success', 'Job Package berhasil diperbarui.');
+            ->with('success', 'Job Package berhasil diperbarui!');
     }
 
     public function destroy(JobPackage $jobPackage)
@@ -256,10 +296,15 @@ class JobPackageController extends Controller
         }
 
         foreach ($this->docFields as $field) {
-            if ($jobPackage->$field && !filter_var($jobPackage->$field, FILTER_VALIDATE_URL)) {
-                $cleanPath = ltrim(str_replace(['public/', 'storage/'], '', $jobPackage->$field), '/');
-                if (Storage::disk('public')->exists($cleanPath)) {
-                    Storage::disk('public')->delete($cleanPath);
+            if (!empty($jobPackage->$field)) {
+                $files = is_array($jobPackage->$field) ? $jobPackage->$field : [$jobPackage->$field];
+                foreach ($files as $filePath) {
+                    if (!filter_var($filePath, FILTER_VALIDATE_URL)) {
+                        $cleanPath = ltrim(str_replace(['public/', 'storage/'], '', $filePath), '/');
+                        if (Storage::disk('public')->exists($cleanPath)) {
+                            Storage::disk('public')->delete($cleanPath);
+                        }
+                    }
                 }
             }
         }
@@ -268,60 +313,98 @@ class JobPackageController extends Controller
 
         return redirect()
             ->route('admin.job-packages.index')
-            ->with('success', 'Job Package dan folder Google Drive terkait berhasil dihapus.');
+            ->with('success', 'Job Package dan berkas terkait berhasil dihapus.');
     }
 
     public function cancel(JobPackage $jobPackage)
     {
         $jobPackage->update(['status' => 'batal']);
-
         $this->logActivity($jobPackage, 'cancelled', 'Job Package dibatalkan.');
 
-        return back()->with('success', 'Job Package berhasil dibatalkan. Data tetap tersimpan dan bisa diaktifkan kembali kapan saja.');
+        return back()->with('success', 'Job Package berhasil dibatalkan.');
     }
 
     public function reactivate(JobPackage $jobPackage)
     {
         $jobPackage->update(['status' => 'aktif']);
-
         $this->logActivity($jobPackage, 'reactivated', 'Job Package diaktifkan kembali.');
 
         return back()->with('success', 'Job Package berhasil diaktifkan kembali.');
     }
 
-    public function deleteDocument(JobPackage $jobPackage, string $field)
+    public function deleteDocument(JobPackage $jobPackage, string $field, Request $request)
     {
         if (!in_array($field, $this->docFields) || empty($jobPackage->$field)) {
             return back()->with('error', 'Dokumen tidak ditemukan atau tidak valid.');
         }
 
-        $filePathOrUrl = $jobPackage->$field;
-        $isUrl = filter_var($filePathOrUrl, FILTER_VALIDATE_URL);
+        $files = is_array($jobPackage->$field) ? $jobPackage->$field : [$jobPackage->$field];
+        
+        foreach ($files as $filePathOrUrl) {
+            $isUrl = filter_var($filePathOrUrl, FILTER_VALIDATE_URL);
 
-        if ($isUrl) {
-            if (env('FILESYSTEM_DISK') === 'google') {
-                try {
-                    preg_match('/[-\w]{25,}/', $filePathOrUrl, $matches);
-                    $fileId = $matches[0] ?? null;
+            if ($isUrl) {
+                if (env('FILESYSTEM_DISK') === 'google') {
+                    try {
+                        preg_match('/[-\w]{25,}/', $filePathOrUrl, $matches);
+                        $fileId = $matches[0] ?? null;
 
-                    if ($fileId) {
-                        $drive = new GoogleDriveService();
-                        $drive->deleteFile($fileId);
-                    }
-                } catch (\Exception $e) {}
-            }
-        } else {
-            $cleanPath = ltrim(str_replace(['public/', 'storage/'], '', $filePathOrUrl), '/');
-            if (Storage::disk('public')->exists($cleanPath)) {
-                Storage::disk('public')->delete($cleanPath);
+                        if ($fileId) {
+                            $drive = new GoogleDriveService();
+                            $drive->deleteFile($fileId);
+                        }
+                    } catch (\Exception $e) {}
+                }
+            } else {
+                $cleanPath = ltrim(str_replace(['public/', 'storage/'], '', $filePathOrUrl), '/');
+                if (Storage::disk('public')->exists($cleanPath)) {
+                    Storage::disk('public')->delete($cleanPath);
+                }
             }
         }
 
         $jobPackage->update([$field => null]);
+        $this->logActivity($jobPackage, 'document_deleted', "Seluruh Dokumen pada “{$field}” dihapus.");
 
-        $this->logActivity($jobPackage, 'document_deleted', "Dokumen \"{$field}\" dihapus.");
+        return back()->with('success', 'Seluruh dokumen berhasil dihapus.');
+    }
 
-        return back()->with('success', 'Dokumen berhasil dihapus.');
+    public function downloadDocument(Request $request, JobPackage $jobPackage, string $field)
+    {
+        if (!in_array($field, $this->docFields) || empty($jobPackage->$field)) {
+            abort(404, 'Dokumen belum diunggah.');
+        }
+
+        $files = is_array($jobPackage->$field) ? $jobPackage->$field : [$jobPackage->$field];
+        $index = $request->query('index', 0);
+        $targetFile = $files[$index] ?? $files[0] ?? null;
+
+        if (!$targetFile) {
+            abort(404, 'File spesifik tidak ditemukan.');
+        }
+
+        if (filter_var($targetFile, FILTER_VALIDATE_URL)) {
+            return redirect()->away($targetFile);
+        }
+
+        $rawPath = $targetFile;
+        $cleanPath = ltrim(str_replace(['public/', 'storage/'], '', $rawPath), '/');
+
+        if (!Storage::disk('public')->exists($cleanPath)) {
+            abort(404, "Berkas fisik tidak ditemukan: storage/app/public/{$cleanPath}");
+        }
+
+        $fullPath = Storage::disk('public')->path($cleanPath);
+        $fileName = basename($cleanPath);
+        $downloadName = preg_replace('/^\d+_/', '', $fileName);
+
+        if ($request->query('mode') === 'view') {
+            return response()->file($fullPath, [
+                'Content-Disposition' => 'inline; filename="' . $downloadName . '"'
+            ]);
+        }
+
+        return response()->download($fullPath, $downloadName);
     }
 
     public function export(JobPackageExportService $exportService)
@@ -342,7 +425,7 @@ class JobPackageController extends Controller
 
         $hasFilesToUpload = false;
         foreach ($this->docFields as $field) {
-            if ($request->hasFile($field) && $request->file($field)->isValid()) {
+            if ($request->hasFile($field)) {
                 $hasFilesToUpload = true;
                 break;
             }
@@ -355,8 +438,8 @@ class JobPackageController extends Controller
         $updates = [];
         $isGoogleDrive = config('filesystems.default') === 'google';
         $drive = null;
-        
         $parentFolderId = config('filesystems.disks.google.folder_jpp');
+        $targetFolderId = null;
 
         if ($isGoogleDrive) {
             $drive = new GoogleDriveService();
@@ -371,39 +454,45 @@ class JobPackageController extends Controller
         }
 
         foreach ($this->docFields as $field) {
-            if ($request->hasFile($field) && $request->file($field)->isValid()) {
-                $file = $request->file($field);
-                $realPath = $file->getRealPath() ?: $file->getPathname();
+            if ($request->hasFile($field)) {
+                $files = $request->file($field);
 
-                if (empty($realPath) || !file_exists($realPath)) {
-                    continue;
+                if (!is_array($files)) {
+                    $files = [$files];
                 }
 
-                if ($jobPackage->$field && !filter_var($jobPackage->$field, FILTER_VALIDATE_URL)) {
-                    $cleanOldPath = ltrim(str_replace(['public/', 'storage/'], '', $jobPackage->$field), '/');
-                    if (Storage::disk('public')->exists($cleanOldPath)) {
-                        Storage::disk('public')->delete($cleanOldPath);
+                $currentFiles = is_array($jobPackage->$field) ? $jobPackage->$field : [];
+
+                foreach ($files as $file) {
+                    if ($file->isValid()) {
+                        $realPath = $file->getRealPath() ?: $file->getPathname();
+
+                        if (empty($realPath) || !file_exists($realPath)) {
+                            continue;
+                        }
+
+                        $originalName = preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                        $filename = time() . '_' . uniqid() . '_' . $originalName;
+
+                        if ($isGoogleDrive && $drive) {
+                            $uploadedFile = $drive->uploadFile(
+                                $filename,
+                                $file->getClientMimeType(),
+                                $realPath,
+                                $file->getSize(),
+                                $targetFolderId
+                            );
+
+                            if ($uploadedFile && isset($uploadedFile->id)) {
+                                $currentFiles[] = $uploadedFile->webViewLink;
+                            }
+                        } else {
+                            $currentFiles[] = $file->storeAs('job_documents', $filename, 'public');
+                        }
                     }
                 }
 
-                $originalName = preg_replace('/\s+/', '_', $file->getClientOriginalName());
-                $filename = time() . '_' . $originalName;
-
-                if ($isGoogleDrive && $drive) {
-                    $uploadedFile = $drive->uploadFile(
-                        $filename,
-                        $file->getClientMimeType(),
-                        $realPath,
-                        $file->getSize(),
-                        $targetFolderId
-                    );
-
-                    if ($uploadedFile && isset($uploadedFile->id)) {
-                        $updates[$field] = $uploadedFile->webViewLink;
-                    }
-                } else {
-                    $updates[$field] = $file->storeAs('job_documents', $filename, 'public');
-                }
+                $updates[$field] = $currentFiles;
             }
         }
 
@@ -415,7 +504,7 @@ class JobPackageController extends Controller
                 $this->logActivity(
                     $jobPackage,
                     'document_uploaded',
-                    'Dokumen diunggah: ' . implode(', ', $uploadedDocs) . '.'
+                    'Dokumen diunggah secara Multiple: ' . implode(', ', $uploadedDocs) . '.'
                 );
             }
         }
@@ -480,35 +569,5 @@ class JobPackageController extends Controller
         return empty($changes)
             ? 'Data diperbarui (tidak ada perubahan nilai signifikan).'
             : implode('; ', $changes);
-    }
-
-    public function downloadDocument(Request $request, JobPackage $jobPackage, string $field)
-    {
-        if (!in_array($field, $this->docFields) || empty($jobPackage->$field)) {
-            abort(404, 'Dokumen belum diunggah.');
-        }
-
-        if (filter_var($jobPackage->$field, FILTER_VALIDATE_URL)) {
-            return redirect()->away($jobPackage->$field);
-        }
-
-        $rawPath = $jobPackage->$field;
-        $cleanPath = ltrim(str_replace(['public/', 'storage/'], '', $rawPath), '/');
-
-        if (!Storage::disk('public')->exists($cleanPath)) {
-            abort(404, "Berkas fisik tidak ditemukan: storage/app/public/{$cleanPath}");
-        }
-
-        $fullPath = Storage::disk('public')->path($cleanPath);
-        $fileName = basename($cleanPath);
-        $downloadName = preg_replace('/^\d+_/', '', $fileName);
-
-        if ($request->query('mode') === 'view') {
-            return response()->file($fullPath, [
-                'Content-Disposition' => 'inline; filename="' . $downloadName . '"'
-            ]);
-        }
-
-        return response()->download($fullPath, $downloadName);
     }
 }

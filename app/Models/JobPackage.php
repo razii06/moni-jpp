@@ -13,48 +13,38 @@ class JobPackage extends Model
     use HasFactory;
 
     protected $fillable = [
-        'job_package',
-        'visibility',
-        'no_surat_bak_doc',
-        'tanggal_surat_masuk',
-        'no_service_notifikasi',
-        'no_service_order',
-        'owner_estimate',
-        'final_harga',
-        'rab_lp002',
-        'pbj_lp002',
-        'progress_pekerjaan',
-        'tanggal_mulai_pekerjaan',
-        'proses_adm_keuangan',
-        'tanggal_selesai_pekerjaan',
-        'hasil_progres',
-        'no_po',
-        'po_items',
-        'latest_activity',
-        'keterangan',
-        'google_drive_folder_id',
-        'doc_rab',
-        'doc_bak',
-        'doc_surat_permintaan',
-        'doc_surat_izin_prinsip',
-        'doc_tor',
-        'doc_bast',
-        'created_by',
-        'status',
+        'items', 'job_package', 'visibility', 'periode', 'no_surat_bak_doc',
+        'tanggal_surat_masuk', 'no_service_notifikasi', 'no_service_order',
+        'owner_estimate', 'final_harga', 'rab_lp002', 'pbj_lp002',
+        'progress_pekerjaan', 'tanggal_mulai_pekerjaan', 'proses_adm_keuangan',
+        'tanggal_selesai_pekerjaan', 'hasil_progres', 'no_po', 'po_items',
+        'latest_activity', 'keterangan', 'google_drive_folder_id',
+        'doc_rab', 'doc_bak', 'doc_surat_permintaan', 'doc_surat_izin_prinsip',
+        'doc_tor', 'doc_bast', 'created_by', 'status',
     ];
 
     protected $casts = [
-        'tanggal_surat_masuk' => 'date',
-        'tanggal_mulai_pekerjaan' => 'date',
+        'periode'                   => 'array',
+        'items'                     => 'array',
+        'tanggal_surat_masuk'       => 'date',
+        'tanggal_mulai_pekerjaan'   => 'date',
         'tanggal_selesai_pekerjaan' => 'date',
-        'owner_estimate' => 'decimal:2',
-        'final_harga' => 'decimal:2',
-        'rab_lp002' => 'float',
-        'pbj_lp002' => 'float',
-        'progress_pekerjaan' => 'float',
-        'proses_adm_keuangan' => 'float',
-        'hasil_progres' => 'float',
-        'po_items' => 'array',
+        'owner_estimate'            => 'decimal:2',
+        'final_harga'               => 'decimal:2',
+        'rab_lp002'                 => 'float',
+        'pbj_lp002'                 => 'float',
+        'progress_pekerjaan'        => 'float',
+        'proses_adm_keuangan'       => 'float',
+        'hasil_progres'             => 'float',
+        'po_items'                  => 'array',
+        
+        // Multiple Upload Array Casts
+        'doc_rab'                   => 'array',
+        'doc_bak'                   => 'array',
+        'doc_surat_permintaan'      => 'array',
+        'doc_surat_izin_prinsip'    => 'array',
+        'doc_tor'                   => 'array',
+        'doc_bast'                  => 'array',
     ];
 
     protected static function booted(): void
@@ -71,48 +61,39 @@ class JobPackage extends Model
         });
     }
 
-    /**
-     * Mutator otomatis untuk membersihkan format teks/rupiah pada owner_estimate sebelum disimpan ke DB.
-     */
     protected function ownerEstimate(): Attribute
     {
         return Attribute::make(
-            set: function ($value) {
-                if (is_string($value) && $value !== '') {
-                    $clean = preg_replace('/[^0-9,.]/', '', $value);
-                    if (str_contains($clean, '.') && str_contains($clean, ',')) {
-                        $clean = str_replace('.', '', $clean);
-                        $clean = str_replace(',', '.', $clean);
-                    } elseif (str_contains($clean, '.') && !str_contains($clean, ',')) {
-                        $clean = str_replace('.', '', $clean);
-                    }
-                    return (float) $clean;
-                }
-                return $value;
-            }
+            set: fn ($value) => self::parseRupiahToFloat($value)
+        );
+    }
+
+    protected function finalHarga(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => self::parseRupiahToFloat($value)
         );
     }
 
     /**
-     * Mutator otomatis untuk membersihkan format teks/rupiah pada final_harga sebelum disimpan ke DB.
+     * Membersihkan format teks/rupiah menjadi float standar database.
      */
-    protected function finalHarga(): Attribute
+    private static function parseRupiahToFloat(mixed $value): mixed
     {
-        return Attribute::make(
-            set: function ($value) {
-                if (is_string($value) && $value !== '') {
-                    $clean = preg_replace('/[^0-9,.]/', '', $value);
-                    if (str_contains($clean, '.') && str_contains($clean, ',')) {
-                        $clean = str_replace('.', '', $clean);
-                        $clean = str_replace(',', '.', $clean);
-                    } elseif (str_contains($clean, '.') && !str_contains($clean, ',')) {
-                        $clean = str_replace('.', '', $clean);
-                    }
-                    return (float) $clean;
-                }
-                return $value;
+        if (is_string($value) && $value !== '') {
+            $clean = preg_replace('/[^0-9,.]/', '', $value);
+            
+            if (str_contains($clean, '.') && str_contains($clean, ',')) {
+                $clean = str_replace('.', '', $clean);
+                $clean = str_replace(',', '.', $clean);
+            } elseif (str_contains($clean, '.') && !str_contains($clean, ',')) {
+                $clean = str_replace('.', '', $clean);
             }
-        );
+            
+            return (float) $clean;
+        }
+        
+        return $value;
     }
 
     public function pos(): HasMany

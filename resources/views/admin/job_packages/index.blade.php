@@ -1,86 +1,75 @@
 <x-admin-layout title="Kelola Job Package">
-    <style>
-        .jobs-reference { width: 100%; }
-        .jobs-reference .jobs-head { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:24px; }
-        .jobs-reference .jobs-head h1 { margin:0; color:#0b1120; font-size:1.85rem; font-weight:900; }
-        .jobs-reference .jobs-head p { margin:5px 0 0; color:#64748b; font-size:.82rem; }
-        .jobs-reference .jobs-actions { display:flex; gap:10px; flex-wrap:wrap; }
-        .jobs-reference .jobs-button { display:inline-flex; align-items:center; gap:8px; min-height:42px; padding:10px 15px; border-radius:10px; font-size:.76rem; font-weight:800; text-decoration:none; transition:.2s; }
-        .jobs-reference .jobs-button:hover { transform:translateY(-2px); }
-        .jobs-reference .jobs-button.export { color:#047857; background:#ecfdf5; border:1px solid #a7f3d0; }
-        .jobs-reference .jobs-button.create { color:#fff; background:#173b78; box-shadow:0 7px 16px rgba(23,59,120,.16); }
-        .jobs-reference .filter-panel { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:22px; padding:16px; border:1px solid #e5ebf3; border-radius:14px; background:#fff; box-shadow:0 6px 22px rgba(15,23,42,.045); }
-        .jobs-reference .filter-tabs { display:flex; gap:6px; flex-wrap:wrap; }
-        .jobs-reference .filter-tab { padding:9px 13px; border-radius:99px; color:#64748b; background:#f8fafc; font-size:.74rem; font-weight:800; text-decoration:none; }
-        .jobs-reference .filter-tab.active { color:#fff; background:#173b78; }
-        .jobs-reference .filter-form { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-        .jobs-reference .search-box { display:flex; align-items:center; gap:8px; width:min(100%,300px); padding:9px 12px; border:1px solid #e2e8f0; border-radius:999px; background:#f8fafc; }
-        .jobs-reference .search-box input { width:100%; border:0; outline:0; background:transparent; font-size:.75rem; }
-        .jobs-reference .sort-box { padding:9px 12px; border:1px solid #e2e8f0; border-radius:999px; color:#475569; background:#f8fafc; font-size:.74rem; font-weight:700; }
-        .jobs-reference .status-card { margin-bottom:22px; overflow:hidden; border:1px solid #e5ebf3; border-radius:16px; background:#fff; box-shadow:0 6px 22px rgba(15,23,42,.045); scroll-margin-top: 80px; }
-        .jobs-reference .status-title { display:flex; align-items:center; gap:9px; padding:19px 22px; border-bottom:1px solid #eef2f7; color:#173b78; font-size:1rem; font-weight:900; }
-        .jobs-reference .status-title.running { color:#2563eb; }
-        .jobs-reference .status-title.done { color:#16a34a; }
-        .jobs-reference .status-title.cancelled { color:#ef4444; }
-        .jobs-reference .status-table-wrap { overflow-x:auto; }
-        .jobs-reference .status-table { width:100%; min-width:1000px; border-collapse:collapse; text-align:left; }
-        .jobs-reference .status-table th { padding:13px 18px; color:#94a3b8; border-bottom:2px solid #f1f5f9; font-size:.66rem; font-weight:900; letter-spacing:.05em; white-space:nowrap; }
-        .jobs-reference .status-table td { padding:19px 18px; color:#475569; border-bottom:1px solid #f1f5f9; vertical-align:top; font-size:.76rem; }
-        .jobs-reference .status-table tbody tr { transition:.2s; }
-        .jobs-reference .status-table tbody tr:hover { background:#f8fbff; box-shadow:inset 3px 0 #f2b818; }
-        .jobs-reference .job-name { display:inline; color:#173b78; font-size:.88rem; font-weight:900; line-height:1.45; overflow-wrap:anywhere; }
-        .jobs-reference .schedule { display:grid; gap:5px; min-width:135px; color:#64748b; font-size:.7rem; line-height:1.35; }
-        .jobs-reference .schedule b { color:#1e293b; }
-        .jobs-reference .badge { display:inline-flex; width:max-content; padding:6px 10px; border-radius:999px; font-size:.68rem; font-weight:900; }
-        .jobs-reference .badge.running { color:#2563eb; background:#eff6ff; border:1px solid #bfdbfe; }
-        .jobs-reference .badge.done { color:#16a34a; background:#f0fdf4; border:1px solid #bbf7d0; }
-        .jobs-reference .badge.cancelled { color:#ef4444; background:#fef2f2; border:1px solid #fecaca; }
-        .jobs-reference .actions { display:flex; gap:6px; align-items:center; white-space:nowrap; }
-        .jobs-reference .icon-action { display:inline-grid; width:36px; height:36px; place-items:center; border:0; border-radius:999px; transition:.2s; cursor:pointer; }
-        .jobs-reference .icon-action:hover { transform:translateY(-2px); }
-        .jobs-reference .icon-action.view { color:#2563eb; background:#eff6ff; }
-        .jobs-reference .icon-action.edit { color:#d97706; background:#fffbeb; }
-        .jobs-reference .icon-action.cancel { color:#64748b; background:#f1f5f9; }
-        .jobs-reference .icon-action.restore { color:#16a34a; background:#f0fdf4; }
-        .jobs-reference .icon-action.delete { color:#ef4444; background:#fef2f2; }
-        .jobs-reference .empty { padding:34px 18px !important; color:#94a3b8 !important; text-align:center; font-size:.8rem !important; }
-        @media (max-width:700px) { .jobs-reference .jobs-head { align-items:flex-start; flex-direction:column; } .jobs-reference .jobs-actions, .jobs-reference .jobs-button { width:100%; justify-content:center; } .jobs-reference .filter-form { width:100%; } .jobs-reference .search-box { flex:1; width:auto; } }
-    </style>
-
-    <div class="jobs-reference">
-        <!-- Header -->
-        <div class="jobs-head">
+    <div class="space-y-6 w-full">
+        <!-- Header Page -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <h1>Job Package</h1>
-                <p>Daftar seluruh pekerjaan Jasa Pelayanan Pabrik berdasarkan status.</p>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Job Package</h1>
+                <p class="text-xs text-slate-500 mt-1">Daftar seluruh pekerjaan Jasa Pelayanan Pabrik berdasarkan status.</p>
             </div>
-            <div class="jobs-actions">
-                <a class="jobs-button export" href="{{ route('admin.job-packages.export') }}">↓ Export Excel</a>
-                <a class="jobs-button create" href="{{ route('admin.job-packages.create') }}">＋ Tambah Job Package</a>
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <a href="{{ route('admin.job-packages.export') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all hover:-translate-y-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export Excel
+                </a>
+                <a href="{{ route('admin.job-packages.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-900/20 transition-all hover:-translate-y-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Tambah Job Package
+                </a>
             </div>
         </div>
 
+        <!-- Alert Notification -->
         @if(session('success'))
-            <div class="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
-                {{ session('success') }}
+            <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-bold text-emerald-700 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>{{ session('success') }}</span>
+                </div>
             </div>
         @endif
 
-        <!-- Filter Panel -->
+        <!-- Filter & Search Panel -->
         @php $currentStatusFilter = request('status_filter', 'semua'); @endphp
-        <div class="filter-panel">
-            <div class="filter-tabs">
-                @foreach(['semua' => 'Semua', 'aktif' => 'Aktif', 'batal' => 'Tidak Aktif'] as $value => $label)
-                    <a class="filter-tab {{ $currentStatusFilter === $value ? 'active' : '' }}" href="{{ request()->fullUrlWithQuery(['status_filter' => $value]) }}#table-section">{{ $label }}</a>
+        <div class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <!-- Filter Tabs -->
+            <div class="flex items-center gap-1.5 flex-wrap">
+                @php
+                    $filters = [
+                        'semua' => 'Semua',
+                        'belum_mulai' => 'Belum Mulai',
+                        'sedang_berjalan' => 'Sedang Berjalan',
+                        'selesai' => 'Selesai',
+                        'batal' => 'Dibatalkan'
+                    ];
+                @endphp
+                @foreach($filters as $value => $label)
+                    <a href="{{ request()->fullUrlWithQuery(['status_filter' => $value]) }}#table-section" 
+                        class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors {{ $currentStatusFilter === $value ? 'bg-blue-900 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                        {{ $label }}
+                    </a>
                 @endforeach
             </div>
-            <form class="filter-form" method="GET" action="{{ route('admin.job-packages.index') }}#table-section">
+
+            <!-- Search & Sort Form -->
+            <form method="GET" action="{{ route('admin.job-packages.index') }}#table-section" class="flex items-center gap-2 flex-wrap md:flex-nowrap">
                 <input type="hidden" name="status_filter" value="{{ $currentStatusFilter }}">
-                <div class="search-box">
-                    <span class="text-slate-400">⌕</span>
-                    <input name="search" value="{{ request('search') }}" placeholder="Cari Job Package, SO, PO...">
+                
+                <div class="relative flex-1 min-w-[200px]">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </span>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Job Package, SO, PO..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
                 </div>
-                <select class="sort-box" name="sort" onchange="this.form.submit()">
+
+                <select name="sort" onchange="this.form.submit()" class="py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
                     <option value="latest" {{ request('sort', 'latest') === 'latest' ? 'selected' : '' }}>Terbaru Ditambahkan</option>
                     <option value="oldest" {{ request('sort') === 'oldest' ? 'selected' : '' }}>Terlama Ditambahkan</option>
                     <option value="progress_desc" {{ request('sort') === 'progress_desc' ? 'selected' : '' }}>Progres Tertinggi</option>
@@ -92,278 +81,359 @@
             </form>
         </div>
 
+        <div id="table-section"></div>
+
         @php
+            // Definisi 4 Tabel Utama
             $boards = [
-                ['id' => 'sedang-berjalan', 'class' => 'running', 'title' => 'Job Package: Sedang Berjalan', 'items' => $runningJobs, 'empty' => 'Tidak ada pekerjaan yang sedang berjalan.'],
-                ['id' => 'selesai', 'class' => 'done', 'title' => 'Job Package: Selesai 100%', 'items' => $doneJobs, 'empty' => 'Belum ada pekerjaan yang selesai.'],
-                ['id' => 'batal', 'class' => 'cancelled', 'title' => 'Job Package: Tidak Dilanjutkan', 'items' => $cancelledJobs, 'empty' => 'Tidak ada pekerjaan yang dibatalkan.'],
+                [
+                    'id' => 'table-not-started',
+                    'key' => 'not_started',
+                    'header_bg' => 'bg-slate-50 border-slate-200 text-slate-800',
+                    'title' => 'Pekerjaan Belum Mulai (0%)',
+                    'items' => $notStartedJobs ?? collect(),
+                    'empty' => 'Tidak ada pekerjaan yang belum mulai.',
+                    'badge_bg' => 'bg-slate-100 text-slate-700 border border-slate-200',
+                    'bar_bg' => 'bg-slate-400',
+                    'icon_path' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', // Clock icon
+                    'status_label' => 'Belum Mulai'
+                ],
+                [
+                    'id' => 'table-running',
+                    'key' => 'running',
+                    'header_bg' => 'bg-blue-50 border-blue-100 text-blue-800',
+                    'title' => 'Pekerjaan Sedang Berjalan (1-99%)',
+                    'items' => $runningJobs ?? collect(),
+                    'empty' => 'Tidak ada pekerjaan yang sedang berjalan.',
+                    'badge_bg' => 'bg-blue-50 text-blue-700 border border-blue-200',
+                    'bar_bg' => 'bg-blue-600',
+                    'icon_path' => 'M13 10V3L4 14h7v7l9-11h-7z',
+                    'status_label' => 'Sedang Berjalan'
+                ],
+                [
+                    'id' => 'table-done',
+                    'key' => 'done',
+                    'header_bg' => 'bg-emerald-50 border-emerald-100 text-emerald-800',
+                    'title' => 'Pekerjaan Selesai (100%)',
+                    'items' => $doneJobs ?? collect(),
+                    'empty' => 'Belum ada pekerjaan yang selesai.',
+                    'badge_bg' => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+                    'bar_bg' => 'bg-emerald-500',
+                    'icon_path' => 'M5 13l4 4L19 7',
+                    'status_label' => 'Selesai'
+                ],
+                [
+                    'id' => 'table-cancelled',
+                    'key' => 'cancelled',
+                    'header_bg' => 'bg-rose-50 border-rose-100 text-rose-800',
+                    'title' => 'Pekerjaan Tidak Dilanjutkan (Dibatalkan)',
+                    'items' => $cancelledJobs ?? collect(),
+                    'empty' => 'Tidak ada pekerjaan yang dibatalkan.',
+                    'badge_bg' => 'bg-rose-50 text-rose-700 border border-rose-200',
+                    'bar_bg' => 'bg-rose-500',
+                    'icon_path' => 'M6 18L18 6M6 6l12 12',
+                    'status_label' => 'Dibatalkan'
+                ],
             ];
 
-            if ($currentStatusFilter === 'aktif') {
-                $boards = array_filter($boards, fn($b) => in_array($b['id'], ['sedang-berjalan', 'selesai']));
+            // Logika Penyaringan Board Berdasarkan Tab Filter Aktif
+            if ($currentStatusFilter === 'belum_mulai') {
+                $boards = array_filter($boards, fn($b) => $b['key'] === 'not_started');
+            } elseif ($currentStatusFilter === 'sedang_berjalan') {
+                $boards = array_filter($boards, fn($b) => $b['key'] === 'running');
+            } elseif ($currentStatusFilter === 'selesai') {
+                $boards = array_filter($boards, fn($b) => $b['key'] === 'done');
             } elseif ($currentStatusFilter === 'batal') {
-                $boards = array_filter($boards, fn($b) => $b['id'] === 'batal');
+                $boards = array_filter($boards, fn($b) => $b['key'] === 'cancelled');
             }
         @endphp
 
-        <!-- Perulangan untuk setiap Tabel Status -->
+        <!-- Looping Tabel berdasarkan Status Card -->
         @foreach($boards as $board)
-            <section id="{{ $board['id'] }}" class="status-card">
-                <h2 class="status-title {{ $board['class'] }}">
-                    <span>{{ $board['class'] === 'running' ? '◷' : ($board['class'] === 'done' ? '✓' : '×') }}</span>
-                    {{ $board['title'] }}
-                </h2>
-                <div class="status-table-wrap">
-                    <table class="status-table">
-                        <thead>
+            <div id="{{ $board['id'] }}" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden scroll-mt-20">
+                <!-- Status Card Header -->
+                <div class="p-4 border-b font-bold flex items-center gap-2 {{ $board['header_bg'] }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $board['icon_path'] }}"/>
+                    </svg>
+                    <span>{{ $board['title'] }}</span>
+                    @if(method_exists($board['items'], 'total'))
+                        <span class="ml-2 px-2 py-0.5 rounded-full bg-white/50 text-sm border border-current opacity-80">{{ $board['items']->total() }}</span>
+                    @endif
+                </div>
+
+                <!-- Table Content -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap min-w-[1100px]">
+                        <thead class="bg-slate-50 text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
                             <tr>
-                                <th class="w-[5%]">NO</th>
-                                <th class="w-[35%]">JOB PACKAGE & SURAT</th>
-                                <th class="w-[22%]">REFERENSI</th>
-                                <th class="w-[18%]">PIC & JADWAL</th>
-                                <th class="w-[12%]">STATUS & PROGRES</th>
-                                <th class="w-[8%] text-center">AKSI</th>
+                                <th class="px-4 py-3 w-10 text-center">NO.</th>
+                                <th class="px-4 py-3 min-w-[280px]">JOB PACKAGE (SM01)</th>
+                                <th class="px-4 py-3 min-w-[200px]">NO. SERVICE ORDER & NOTIFIKASI</th>
+                                <th class="px-4 py-3 min-w-[140px]">OWNER ESTIMATE</th>
+                                <th class="px-4 py-3 min-w-[140px]">NO. PO</th>
+                                <th class="px-4 py-3 min-w-[180px]">STATUS & PROGRES</th>
+                                <th class="px-4 py-3 text-center min-w-[180px]">AKSI</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100 text-slate-600">
                             @forelse($board['items'] as $jp)
                                 @php
-                                    $progress = max(0, min(100, (float) $jp->hasil_progres));
-                                    $isCancelled = $jp->status === 'batal';
+                                    // Hitung Progres
+                                    $progress = floatval(str_replace(',', '.', $jp->hasil_progres ?? 0));
+                                    $progress = max(0, min(100, $progress));
+                                    
+                                    $isCancelled = ($jp->status === 'batal');
 
-                                    // 1. Ekstraksi Nomor Surat / BAK
-                                    $suratDocsList = [];
-                                    if (isset($jp->suratBakDocs) && $jp->suratBakDocs->count() > 0) {
-                                        foreach ($jp->suratBakDocs as $sDoc) {
-                                            $val = $sDoc->no_surat ?? $sDoc->no_surat_bak_doc ?? $sDoc->nomor_surat ?? null;
-                                            if (!empty($val)) {
-                                                $suratDocsList[] = $val;
-                                            }
+                                    // Ekstraksi Item Job Package (SM01)
+                                    $jpList = [];
+                                    $rawJp = $jp->job_package ?? null;
+                                    if (!empty($rawJp)) {
+                                        if (is_array($rawJp)) {
+                                            $jpList = $rawJp;
+                                        } else {
+                                            $decoded = json_decode($rawJp, true);
+                                            $jpList = is_array($decoded) ? $decoded : preg_split('/[\n\r,]+/', $rawJp);
                                         }
                                     }
-                                    if (empty($suratDocsList)) {
-                                        $rawSurat = $jp->no_surat_bak_doc ?? $jp->no_surat ?? null;
-                                        if (!empty($rawSurat)) {
-                                            if (is_array($rawSurat)) {
-                                                $suratDocsList = $rawSurat;
-                                            } else {
-                                                $decoded = json_decode($rawSurat, true);
-                                                if (is_array($decoded)) {
-                                                    $suratDocsList = $decoded;
-                                                } else {
-                                                    $suratDocsList = preg_split('/[\n\r,]+/', $rawSurat);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    $suratDocsList = array_values(array_filter(array_map('trim', (array)$suratDocsList)));
+                                    $jpList = array_values(array_filter(array_map('trim', (array)$jpList)));
+                                    $firstJp = $jpList[0] ?? 'Tanpa Judul Pekerjaan';
+                                    $extraJpCount = max(0, count($jpList) - 1);
 
-                                    // 2. Ekstraksi PO & Harga
+                                    // Ekstraksi PO & Harga
                                     $pos = $jp->pos;
                                     $firstPo = $pos ? $pos->first() : null;
                                     $extraPoCount = $pos ? ($pos->count() - 1) : 0;
 
                                     $getPoNumber = function($poItem) {
-                                        if (is_object($poItem)) {
-                                            return $poItem->no_po ?? $poItem->po_number ?? $poItem->nomor_po ?? $poItem->no_po_doc ?? '-';
-                                        }
-                                        if (is_array($poItem)) {
-                                            return $poItem['no_po'] ?? $poItem['po_number'] ?? $poItem['nomor_po'] ?? $poItem['no_po_doc'] ?? '-';
-                                        }
+                                        if (is_object($poItem)) return $poItem->no_po ?? $poItem->po_number ?? $poItem->nomor_po ?? $poItem->no_po_doc ?? '-';
+                                        if (is_array($poItem)) return $poItem['no_po'] ?? $poItem['po_number'] ?? $poItem['nomor_po'] ?? $poItem['no_po_doc'] ?? '-';
                                         return is_scalar($poItem) ? (string)$poItem : '-';
                                     };
 
                                     $getPoPrice = function($poItem) {
-                                        $rawVal = null;
-                                        if (is_object($poItem)) {
-                                            $rawVal = $poItem->nilai_po ?? $poItem->harga ?? $poItem->nominal ?? $poItem->nilai 
-                                                ?? $poItem->total ?? $poItem->harga_po ?? $poItem->nilai_pekerjaan 
-                                                ?? $poItem->nilai_kontrak ?? $poItem->amount ?? $poItem->price ?? $poItem->total_harga ?? null;
-                                        } elseif (is_array($poItem)) {
-                                            $rawVal = $poItem['nilai_po'] ?? $poItem['harga'] ?? $poItem['nominal'] ?? $poItem['nilai'] 
-                                                ?? $poItem['total'] ?? $poItem['harga_po'] ?? $poItem['nilai_pekerjaan'] 
-                                                ?? $poItem['nilai_kontrak'] ?? $poItem['amount'] ?? $poItem['price'] ?? $poItem['total_harga'] ?? null;
-                                        }
+                                        $rawVal = is_object($poItem) 
+                                            ? ($poItem->nilai_po ?? $poItem->harga ?? $poItem->nominal ?? $poItem->nilai ?? $poItem->total ?? $poItem->harga_po ?? $poItem->total_harga ?? null)
+                                            : ($poItem['nilai_po'] ?? $poItem['harga'] ?? $poItem['nominal'] ?? $poItem['nilai'] ?? $poItem['total'] ?? $poItem['harga_po'] ?? $poItem['total_harga'] ?? null);
 
                                         if ($rawVal !== null && $rawVal !== '') {
                                             $cleaned = preg_replace('/[^0-9]/', '', (string)$rawVal);
-                                            if ($cleaned !== '') {
-                                                return 'Rp ' . number_format((float)$cleaned, 0, ',', '.');
-                                            }
+                                            if ($cleaned !== '') return 'Rp ' . number_format((float)$cleaned, 0, ',', '.');
                                         }
                                         return null;
                                     };
-
-                                    // Departemen
-                                    $deptList = $jp->permintaanDaris ? $jp->permintaanDaris->pluck('permintaan_dari')->filter()->join(', ') : '';
-                                    if (empty($deptList)) {
-                                        $deptList = $jp->departemen ?? '-';
-                                    }
                                 @endphp
-                                <tr>
-                                    <td><strong>{{ $board['items']->firstItem() + $loop->index }}</strong></td>
-                                    
-                                    <!-- JOB PACKAGE & SURAT -->
-                                    <td>
-                                        <div class="flex items-start gap-2 flex-wrap">
-                                            <a class="job-name hover:text-blue-700 transition-colors" href="{{ route('admin.job-packages.show', $jp) }}">
-                                                {{ $jp->job_package }}
+                                <tr x-data="{ openDetailModal: false }" class="hover:bg-slate-50/80 transition-colors">
+                                    <!-- NO -->
+                                    <td class="px-4 py-4 font-bold text-slate-400 text-center align-top text-xs">
+                                        {{ method_exists($board['items'], 'firstItem') ? ($board['items']->firstItem() + $loop->index) : ($loop->index + 1) }}
+                                    </td>
+
+                                    <!-- KOLOM 1: JOB Package (SM01) -->
+                                    <td class="px-4 py-4 align-top">
+                                        <div class="flex items-start gap-1.5 flex-wrap max-w-sm">
+                                            <a href="{{ route('admin.job-packages.show', $jp) }}" class="font-bold text-slate-900 hover:text-blue-700 leading-snug whitespace-normal block transition-colors text-sm">
+                                                {{ $firstJp }}
                                             </a>
 
+                                            @if($extraJpCount > 0)
+                                                <button @click="openDetailModal = true" type="button" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-colors shrink-0">
+                                                    +{{ $extraJpCount }} lainnya
+                                                </button>
+                                            @endif
+
                                             @if(($jp->visibility ?? 'public') === 'internal')
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
-                                                    🔒 Privat (INT JPP)
+                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
+                                                    🔒 Privat
                                                 </span>
                                             @endif
                                         </div>
-                                        
-                                        <div class="mt-2 space-y-1.5 text-[11px] text-slate-500">
-                                            <div class="flex flex-col gap-1">
-                                                <span class="text-slate-400 font-semibold">No. Surat / BAK:</span>
-                                                @if(count($suratDocsList) > 0)
-                                                    <div class="flex flex-col space-y-1 w-full">
-                                                        @foreach($suratDocsList as $sNum)
-                                                            <div class="text-[11px] font-bold text-blue-700 bg-blue-50/80 border border-blue-200/80 px-2 py-0.5 rounded-md w-fit leading-tight break-all">
-                                                                {{ $sNum }}
+
+                                        <!-- Modal Rincian Job Package -->
+                                        @if($extraJpCount > 0)
+                                            <template x-teleport="body">
+                                                <div x-show="openDetailModal" 
+                                                    x-transition:enter="transition ease-out duration-200"
+                                                    x-transition:enter-start="opacity-0 scale-95"
+                                                    x-transition:enter-end="opacity-100 scale-100"
+                                                    x-transition:leave="transition ease-in duration-150"
+                                                    x-transition:leave-start="opacity-100 scale-100"
+                                                    x-transition:leave-end="opacity-0 scale-95"
+                                                    class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" 
+                                                    style="display: none;">
+                                                    <div @click.outside="openDetailModal = false" class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 flex flex-col max-h-[85vh]">
+                                                        <div class="bg-blue-900 text-white p-4 flex items-center justify-between shrink-0">
+                                                            <div>
+                                                                <h3 class="font-bold text-base tracking-tight">Rincian Job Package</h3>
+                                                                <p class="text-xs text-blue-200 mt-0.5">Berisi {{ count($jpList) }} Paket Pekerjaan</p>
                                                             </div>
-                                                        @endforeach
-                                                    </div>
-                                                @else
-                                                    <span class="text-slate-400 font-semibold">-</span>
-                                                @endif
-                                            </div>
-
-                                            <p><span class="text-slate-400">Departemen:</span> <span class="text-slate-700 font-medium">{{ $deptList }}</span></p>
-                                        </div>
-                                    </td>
-
-                                    <!-- REFERENSI -->
-                                    <td>
-                                        <div class="space-y-1 text-slate-500 font-medium text-[11px]">
-                                            <div>
-                                                <span class="text-slate-400">No. SO:</span> 
-                                                <strong class="text-slate-800">{{ $jp->no_service_order ?: '-' }}</strong>
-                                            </div>
-
-                                            <div class="flex items-center gap-1.5 flex-wrap" x-data="{ openPO: false }">
-                                                <span class="text-slate-400">No. PO:</span>
-                                                
-                                                @if($pos && $pos->count() > 0)
-                                                    <span class="font-bold text-slate-800">{{ $getPoNumber($firstPo) }}</span>
-
-                                                    @if($extraPoCount > 0)
-                                                        <div class="relative inline-block">
-                                                            <button @click="openPO = !openPO" 
-                                                                    @click.outside="openPO = false"
-                                                                    type="button"
-                                                                    class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors cursor-pointer border border-amber-300">
-                                                                +{{ $extraPoCount }} PO
+                                                            <button @click="openDetailModal = false" type="button" class="text-blue-200 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
+                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                                </svg>
                                                             </button>
-
-                                                            <div x-show="openPO" 
-                                                                 x-transition:enter="transition ease-out duration-150"
-                                                                 x-transition:enter-start="opacity-0 scale-95"
-                                                                 x-transition:enter-end="opacity-100 scale-100"
-                                                                 x-transition:leave="transition ease-in duration-100"
-                                                                 x-transition:leave-start="opacity-100 scale-100"
-                                                                 x-transition:leave-end="opacity-0 scale-95"
-                                                                 class="absolute left-0 mt-1 w-60 bg-white border border-slate-200 rounded-xl shadow-xl p-2.5 z-30" 
-                                                                 style="display: none;">
-                                                                
-                                                                <div class="flex items-center justify-between mb-2 pb-1 border-b border-slate-100">
-                                                                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Daftar No. PO & Harga</span>
-                                                                    <span class="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full font-bold border border-amber-200/60">{{ $pos->count() }} Total</span>
-                                                                </div>
-
-                                                                <ul class="space-y-1 max-h-44 overflow-y-auto pr-1">
-                                                                    @foreach($pos as $poItem)
-                                                                        @php
-                                                                            $poNum = $getPoNumber($poItem);
-                                                                            $poPrice = $getPoPrice($poItem);
-                                                                        @endphp
-                                                                        <li class="flex items-center justify-between gap-2 text-[11px] font-semibold text-slate-700 bg-slate-50 px-2 py-1 rounded-md border border-slate-100 hover:bg-slate-100 transition-colors">
-                                                                            <span class="select-all font-bold text-slate-800">{{ $poNum }}</span>
-                                                                            @if($poPrice)
-                                                                                <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/70 shrink-0">
-                                                                                    {{ $poPrice }}
-                                                                                </span>
-                                                                            @else
-                                                                                <span class="text-[10px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded shrink-0">
-                                                                                    Tanpa Harga
-                                                                                </span>
-                                                                            @endif
-                                                                        </li>
-                                                                    @endforeach
-                                                                </ul>
-                                                            </div>
                                                         </div>
-                                                    @endif
-                                                @elseif(!empty($jp->no_po))
-                                                    <span class="font-bold text-slate-800">{{ $jp->no_po }}</span>
-                                                @else
-                                                    <span class="text-slate-400">-</span>
-                                                @endif
-                                            </div>
+                                                        <div class="p-4 overflow-y-auto flex-1">
+                                                            <table class="w-full text-left text-xs border-collapse">
+                                                                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 sticky top-0">
+                                                                    <tr>
+                                                                        <th class="py-2.5 px-3 w-12 text-center font-bold"></th>
+                                                                        <th class="py-2.5 px-3 font-bold">NAMA JOB PACKAGE</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody class="divide-y divide-slate-100">
+                                                                    @foreach($jpList as $idx => $item)
+                                                                        <tr>
+                                                                            <td class="py-3 px-3 text-center text-slate-400 font-bold align-top">-</td>
+                                                                            <td class="py-3 px-3 font-semibold text-slate-800 leading-relaxed whitespace-normal align-top">{{ $item }}</td>
+                                                                        </tr>
+                                                                    @endforeach
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        <div class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
+                                                            <button @click="openDetailModal = false" type="button" class="px-4 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition-colors shadow-sm">
+                                                                Tutup
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        @endif
+                                    </td>
 
-                                            <div>
-                                                <span class="text-slate-400">Notif:</span> 
-                                                <span class="text-slate-700 font-medium">{{ $jp->no_service_notifikasi ?? '-' }}</span>
-                                            </div>
-
-                                            <div>
-                                                <span class="text-slate-400">Estimasi OE:</span> 
-                                                <strong class="text-slate-800">Rp {{ number_format($jp->owner_estimate ?? 0, 0, ',', '.') }}</strong>
-                                            </div>
+                                    <!-- KOLOM 2: NO. SERVICE ORDER & NOTIFIKASI -->
+                                    <td class="px-4 py-4 align-top text-xs space-y-1">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="text-slate-400 text-[11px]">Service Order</span>
+                                            <span class="font-bold text-slate-800 select-all">{{ $jp->no_service_order ?? '-' }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="text-slate-400 text-[11px]">Notifikasi</span>
+                                            <span class="font-semibold text-slate-800 select-all">{{ $jp->no_service_notifikasi ?? '-' }}</span>
                                         </div>
                                     </td>
 
-                                    <!-- PIC & JADWAL -->
-                                    <td>
-                                        <div class="schedule">
-                                            <b>{{ $jp->creator->name ?? 'Administrator JPP' }}</b>
-                                            <span>▶ Mulai: <b>{{ optional($jp->tanggal_mulai_pekerjaan)->format('d M Y') ?: '-' }}</b></span>
-                                            <span>⚑ Target: <b>{{ optional($jp->tanggal_selesai_pekerjaan)->format('d M Y') ?: '-' }}</b></span>
-                                        </div>
-                                    </td>
-
-                                    <!-- STATUS & PROGRES -->
-                                    <td>
-                                        <span class="badge {{ $board['class'] }}">
-                                            {{ $isCancelled ? 'Dibatalkan' : ($progress >= 100 ? 'Selesai 100%' : 'Sedang Berjalan') }}
+                                    <!-- KOLOM 3: OWNER ESTIMATE -->
+                                    <td class="px-4 py-4 align-top text-xs">
+                                        <span class="font-extrabold text-slate-900">
+                                            Rp {{ number_format($jp->owner_estimate ?? 0, 0, ',', '.') }}
                                         </span>
-                                        <div class="mt-2 w-32">
-                                            <div class="flex justify-between items-center text-[10px] font-bold text-slate-500 mb-1">
-                                                <span>PROGRES</span>
-                                                <span class="text-blue-900 font-black">{{ number_format($progress, 0) }}%</span>
+                                    </td>
+
+                                    <!-- KOLOM 4: NO. PO -->
+                                    <td class="px-4 py-4 align-top text-xs">
+                                        <div class="flex items-center gap-1.5 flex-wrap" x-data="{ openPO: false }">
+                                            @if($pos && $pos->count() > 0)
+                                                <span class="font-bold text-blue-900 select-all">{{ $getPoNumber($firstPo) }}</span>
+                                                @if($extraPoCount > 0)
+                                                    <div class="relative inline-block">
+                                                        <button @click="openPO = !openPO" @click.outside="openPO = false" type="button" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300 transition-colors">
+                                                            +{{ $extraPoCount }} PO
+                                                        </button>
+                                                        <div x-show="openPO" x-transition class="absolute left-0 mt-1 w-60 bg-white border border-slate-200 rounded-xl shadow-xl p-2.5 z-30" style="display: none;">
+                                                            <div class="flex items-center justify-between mb-2 pb-1 border-b border-slate-100">
+                                                                <span class="text-[10px] font-extrabold uppercase text-slate-400">Daftar PO & Harga</span>
+                                                                <span class="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full font-bold border border-amber-200">{{ $pos->count() }} Total</span>
+                                                            </div>
+                                                            <ul class="space-y-1 max-h-44 overflow-y-auto pr-1">
+                                                                @foreach($pos as $poItem)
+                                                                    @php
+                                                                        $poNum = $getPoNumber($poItem);
+                                                                        $poPrice = $getPoPrice($poItem);
+                                                                    @endphp
+                                                                    <li class="flex items-center justify-between gap-2 text-[11px] font-semibold text-slate-700 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                                                                        <span class="font-bold text-slate-800 select-all">{{ $poNum }}</span>
+                                                                        @if($poPrice)
+                                                                            <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">{{ $poPrice }}</span>
+                                                                        @else
+                                                                            <span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded shrink-0">Tanpa Harga</span>
+                                                                        @endif
+                                                                    </li>
+                                                                @endforeach
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            @elseif(!empty($jp->no_po))
+                                                <span class="font-bold text-blue-900 select-all">{{ $jp->no_po }}</span>
+                                            @else
+                                                <span class="text-slate-400">-</span>
+                                            @endif
+                                        </div>
+                                    </td>
+
+                                    <!-- KOLOM 5: STATUS & PROGRES -->
+                                    <td class="px-4 py-4 align-top space-y-2">
+                                        <div>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold {{ $board['badge_bg'] }}">
+                                                {{ $board['status_label'] }}
+                                            </span>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-24 bg-slate-100 rounded-full h-2 overflow-hidden flex-1">
+                                                <div class="h-2 rounded-full {{ $board['bar_bg'] }}" style="width: {{ $progress }}%"></div>
                                             </div>
-                                            <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                                <div class="h-1.5 rounded-full {{ $board['class'] === 'done' ? 'bg-emerald-500' : ($board['class'] === 'cancelled' ? 'bg-rose-500' : 'bg-blue-600') }}" style="width: {{ $progress }}%"></div>
-                                            </div>
+                                            <span class="text-xs font-extrabold text-slate-700 min-w-[36px] text-right">
+                                                {{ number_format($progress, 1) }}%
+                                            </span>
+                                        </div>
+
+                                        <div class="text-[10px] text-slate-400">
+                                            PIC: <span class="font-semibold text-slate-600">{{ $jp->creator->name ?? 'Administrator' }}</span>
                                         </div>
                                     </td>
 
                                     <!-- AKSI -->
-                                    <td class="text-center">
-                                        <div class="actions justify-center">
-                                            <a class="icon-action view" title="Detail" href="{{ route('admin.job-packages.show', $jp) }}">◉</a>
-                                            <a class="icon-action edit" title="Edit" href="{{ route('admin.job-packages.edit', $jp) }}">✎</a>
+                                    <td class="px-4 py-4 align-top text-center">
+                                        <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                            <a href="{{ route('admin.job-packages.show', $jp) }}" title="Detail Job Package" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                                <span>Detail</span>
+                                            </a>
+
+                                            <a href="{{ route('admin.job-packages.edit', $jp) }}" title="Edit Job Package" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                </svg>
+                                                <span>Edit</span>
+                                            </a>
                                             
                                             @if($isCancelled)
-                                                <form method="POST" action="{{ route('admin.job-packages.reactivate', $jp) }}">
+                                                <form method="POST" action="{{ route('admin.job-packages.reactivate', $jp) }}" class="inline">
                                                     @csrf @method('PATCH')
-                                                    <button class="icon-action restore" title="Aktifkan kembali">↻</button>
+                                                    <button type="submit" title="Aktifkan Kembali Job Package" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                        </svg>
+                                                        <span>Restore</span>
+                                                    </button>
                                                 </form>
                                             @else
-                                                <form method="POST" action="{{ route('admin.job-packages.cancel', $jp) }}">
+                                                <form method="POST" action="{{ route('admin.job-packages.cancel', $jp) }}" class="inline">
                                                     @csrf @method('PATCH')
-                                                    <button class="icon-action cancel" title="Batalkan">⊘</button>
+                                                    <button type="submit" title="Batalkan Job Package" class="px-2.5 py-1.5 bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                                        </svg>
+                                                        <span>Batal</span>
+                                                    </button>
                                                 </form>
                                             @endif
 
-                                            @if(auth()->user()->isAdmin())
-                                                <form method="POST" action="{{ route('admin.job-packages.destroy', $jp) }}" onsubmit="return confirm('Hapus Job Package ini secara permanen?')">
+                                            @if(auth()->check() && method_exists(auth()->user(), 'isAdmin') && auth()->user()->isAdmin())
+                                                <form method="POST" action="{{ route('admin.job-packages.destroy', $jp) }}" onsubmit="return confirm('Hapus Job Package ini secara permanen?')" class="inline">
                                                     @csrf @method('DELETE')
-                                                    <button class="icon-action delete" title="Hapus">⌫</button>
+                                                    <button type="submit" title="Hapus Permanen" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                        </svg>
+                                                        <span>Hapus</span>
+                                                    </button>
                                                 </form>
                                             @endif
                                         </div>
@@ -371,47 +441,46 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="empty">{{ $board['empty'] }}</td>
+                                    <td colspan="7" class="px-4 py-8 text-center text-slate-400 text-xs font-medium">
+                                        {{ $board['empty'] }}
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Pagination Khusus Per Tabel -->
-                @if($board['items']->hasPages())
-                    <div class="p-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <!-- Pagination Per Tabel -->
+                @if(method_exists($board['items'], 'hasPages') && $board['items']->hasPages())
+                    <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div class="text-xs text-slate-500 font-medium">
                             Menampilkan <span class="font-bold text-slate-700">{{ $board['items']->firstItem() }}</span> - <span class="font-bold text-slate-700">{{ $board['items']->lastItem() }}</span> dari <span class="font-bold text-slate-700">{{ $board['items']->total() }}</span> data
                         </div>
                         
-                        <nav role="navigation" aria-label="Pagination Navigation" class="inline-flex items-center rounded-lg border border-amber-400 bg-white overflow-hidden shadow-sm">
-                            {{-- Previous Page Link --}}
+                        <nav role="navigation" aria-label="Pagination Navigation" class="inline-flex items-center rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm">
                             @if ($board['items']->onFirstPage())
-                                <span class="px-3.5 py-2 text-xs font-bold text-amber-300 cursor-not-allowed bg-slate-50">«</span>
+                                <span class="px-3 py-1.5 text-xs font-bold text-slate-300 cursor-not-allowed bg-slate-50">«</span>
                             @else
-                                <a href="{{ $board['items']->previousPageUrl() }}#{{ $board['id'] }}" class="px-3.5 py-2 text-xs font-bold text-amber-600 hover:bg-amber-50 transition-colors">«</a>
+                                <a href="{{ $board['items']->previousPageUrl() }}#{{ $board['id'] }}" class="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors">«</a>
                             @endif
 
-                            {{-- Pagination Elements --}}
                             @foreach ($board['items']->getUrlRange(1, $board['items']->lastPage()) as $page => $url)
                                 @if ($page == $board['items']->currentPage())
-                                    <span class="px-4 py-2 text-xs font-extrabold bg-amber-500 text-white border-l border-amber-200">{{ $page }}</span>
+                                    <span class="px-3 py-1.5 text-xs font-extrabold bg-blue-900 text-white border-l border-slate-200">{{ $page }}</span>
                                 @else
-                                    <a href="{{ $url }}#{{ $board['id'] }}" class="px-4 py-2 text-xs font-bold text-amber-600 hover:bg-amber-50 border-l border-amber-200 transition-colors">{{ $page }}</a>
+                                    <a href="{{ $url }}#{{ $board['id'] }}" class="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 border-l border-slate-200 transition-colors">{{ $page }}</a>
                                 @endif
                             @endforeach
 
-                            {{-- Next Page Link --}}
                             @if ($board['items']->hasMorePages())
-                                <a href="{{ $board['items']->nextPageUrl() }}#{{ $board['id'] }}" class="px-3.5 py-2 text-xs font-bold text-amber-600 hover:bg-amber-50 border-l border-amber-200 transition-colors">»</a>
+                                <a href="{{ $board['items']->nextPageUrl() }}#{{ $board['id'] }}" class="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 border-l border-slate-200 transition-colors">»</a>
                             @else
-                                <span class="px-3.5 py-2 text-xs font-bold text-amber-300 cursor-not-allowed bg-slate-50 border-l border-amber-200">»</span>
+                                <span class="px-3 py-1.5 text-xs font-bold text-slate-300 cursor-not-allowed bg-slate-50 border-l border-slate-200">»</span>
                             @endif
                         </nav>
                     </div>
                 @endif
-            </section>
+            </div>
         @endforeach
     </div>
 </x-admin-layout>

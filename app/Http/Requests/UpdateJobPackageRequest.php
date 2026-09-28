@@ -13,20 +13,39 @@ class UpdateJobPackageRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'owner_estimate' => $this->sanitizeNumber($this->owner_estimate),
-            'final_harga'    => $this->sanitizeNumber($this->final_harga),
+        // 1. Ubah job_package menjadi string jika dikirim sebagai array
+        $jobPackage = $this->input('job_package');
+        if (is_array($jobPackage)) {
+            $jobPackage = implode(', ', array_filter($jobPackage));
+        }
 
+        // 2. Ubah periode menjadi string jika dikirim sebagai array
+        $periode = $this->input('periode');
+        if (is_array($periode)) {
+            $periode = implode(' s/d ', array_filter($periode));
+        }
+
+        // 3. Normalisasi po_items ke pos jika pos kosong
+        $pos = $this->input('pos', $this->input('po_items', []));
+
+        // 4. Sanitasi data angka & desimal
+        $this->merge([
+            'job_package'         => $jobPackage,
+            'periode'             => $periode,
+            'owner_estimate'      => $this->sanitizeNumber($this->owner_estimate),
+            'final_harga'         => $this->sanitizeNumber($this->final_harga),
             'rab_lp002'           => $this->sanitizeDecimal($this->rab_lp002),
             'pbj_lp002'           => $this->sanitizeDecimal($this->pbj_lp002),
             'progress_pekerjaan'  => $this->sanitizeDecimal($this->progress_pekerjaan),
             'proses_adm_keuangan' => $this->sanitizeDecimal($this->proses_adm_keuangan),
         ]);
 
-        if (is_array($this->pos)) {
-            $sanitizedPos = collect($this->pos)->map(function ($item) {
+        if (is_array($pos)) {
+            $sanitizedPos = collect($pos)->map(function ($item) {
                 if (isset($item['price'])) {
                     $item['price'] = $this->sanitizeNumber($item['price']);
+                } elseif (isset($item['harga'])) {
+                    $item['price'] = $this->sanitizeNumber($item['harga']);
                 }
                 return $item;
             })->toArray();
@@ -38,7 +57,10 @@ class UpdateJobPackageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'job_package'             => ['required', 'string', 'max:255'],
+            'items'                   => 'sometimes|array',
+            'items.*'                 => 'required|string',
+            'job_package'             => ['required', 'string'],
+            'periode'                 => ['nullable', 'string', 'max:255'],
             'visibility'              => 'required|in:public,internal',
             'tanggal_surat_masuk'     => ['nullable', 'date'],
             'no_service_notifikasi'   => ['required', 'string', 'max:255'],

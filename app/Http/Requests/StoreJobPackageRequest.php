@@ -13,20 +13,35 @@ class StoreJobPackageRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'owner_estimate' => $this->sanitizeNumber($this->owner_estimate),
-            'final_harga'    => $this->sanitizeNumber($this->final_harga),
+        $jobPackage = $this->input('job_package');
+        if (is_array($jobPackage)) {
+            $jobPackage = implode(', ', array_filter($jobPackage));
+        }
 
+        $periode = $this->input('periode');
+        if (is_array($periode)) {
+            $periode = implode(' s/d ', array_filter($periode));
+        }
+
+        $pos = $this->input('pos', $this->input('po_items', []));
+
+        $this->merge([
+            'job_package'         => $jobPackage,
+            'periode'             => $periode,
+            'owner_estimate'      => $this->sanitizeNumber($this->owner_estimate),
+            'final_harga'         => $this->sanitizeNumber($this->final_harga),
             'rab_lp002'           => $this->sanitizeDecimal($this->rab_lp002),
             'pbj_lp002'           => $this->sanitizeDecimal($this->pbj_lp002),
             'progress_pekerjaan'  => $this->sanitizeDecimal($this->progress_pekerjaan),
             'proses_adm_keuangan' => $this->sanitizeDecimal($this->proses_adm_keuangan),
         ]);
 
-        if (is_array($this->pos)) {
-            $sanitizedPos = collect($this->pos)->map(function ($item) {
+        if (is_array($pos)) {
+            $sanitizedPos = collect($pos)->map(function ($item) {
                 if (isset($item['price'])) {
                     $item['price'] = $this->sanitizeNumber($item['price']);
+                } elseif (isset($item['harga'])) {
+                    $item['price'] = $this->sanitizeNumber($item['harga']);
                 }
                 return $item;
             })->toArray();
@@ -38,7 +53,8 @@ class StoreJobPackageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'job_package'             => ['required', 'string', 'max:255'],
+            'job_package'             => ['required', 'string'],
+            'periode'                 => ['nullable', 'string', 'max:255'],
             'visibility'              => 'required|in:public,internal',
             'tanggal_surat_masuk'     => ['nullable', 'date'],
             'no_service_notifikasi'   => ['required', 'string', 'max:255'],
@@ -68,21 +84,32 @@ class StoreJobPackageRequest extends FormRequest
                 },
             ],
             'surat_bak_docs.*'        => ['nullable', 'string', 'max:1000'],
-
             'permintaan_dari'         => ['nullable', 'array', 'max:20'],
             'permintaan_dari.*'       => ['nullable', 'string', 'max:255'],
-
             'pos'                     => ['nullable', 'array', 'max:50'],
             'pos.*.no_po'             => ['nullable', 'string', 'max:255'],
             'pos.*.description'       => ['nullable', 'string', 'max:1000'],
+            'pos.*.nama_item'         => ['nullable', 'string', 'max:1000'],
             'pos.*.price'             => ['nullable', 'numeric', 'min:0'],
 
-            'doc_rab'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
-            'doc_bak'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
-            'doc_surat_permintaan'    => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
-            'doc_surat_izin_prinsip'   => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
-            'doc_tor'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
-            'doc_bast'                => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+            // Validasi Multiple Upload (Array Form)
+            'doc_rab'                 => ['nullable', 'array'],
+            'doc_rab.*'               => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+            
+            'doc_bak'                 => ['nullable', 'array'],
+            'doc_bak.*'               => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+            
+            'doc_surat_permintaan'    => ['nullable', 'array'],
+            'doc_surat_permintaan.*'  => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+            
+            'doc_surat_izin_prinsip'  => ['nullable', 'array'],
+            'doc_surat_izin_prinsip.*'=> ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+            
+            'doc_tor'                 => ['nullable', 'array'],
+            'doc_tor.*'               => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+            
+            'doc_bast'                => ['nullable', 'array'],
+            'doc_bast.*'              => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
         ];
     }
 
@@ -113,21 +140,12 @@ class StoreJobPackageRequest extends FormRequest
             'no_service_order'        => 'No. Service Order',
             'owner_estimate'          => 'Owner Estimate',
             'final_harga'             => 'Final Harga',
-            'rab_lp002'               => 'RAB LP-001/002',
-            'pbj_lp002'               => 'PBJ LP-001/002',
-            'progress_pekerjaan'      => 'Progress Pekerjaan',
-            'proses_adm_keuangan'     => 'Proses ADM Keuangan',
-            'doc_rab'                 => 'Dokumen RAB',
-            'doc_bak'                 => 'Dokumen BAK',
-            'doc_surat_permintaan'    => 'Dokumen Surat Permintaan',
-            'doc_surat_izin_prinsip'   => 'Dokumen Surat Izin Prinsip',
-            'doc_tor'                 => 'Dokumen TOR',
-            'doc_bast'                => 'Dokumen BAST',
-            'pos.*.no_po'             => 'No. PO',
-            'pos.*.description'       => 'Deskripsi Item PO',
-            'pos.*.price'             => 'Harga PO',
-            'surat_bak_docs.*'        => 'No. Surat/BAK/Doc',
-            'permintaan_dari.*'       => 'Permintaan Dari',
+            'doc_rab.*'               => 'Dokumen RAB',
+            'doc_bak.*'               => 'Dokumen BAK',
+            'doc_surat_permintaan.*'  => 'Dokumen Surat Permintaan',
+            'doc_surat_izin_prinsip.*'=> 'Dokumen Surat Izin Prinsip',
+            'doc_tor.*'               => 'Dokumen TOR',
+            'doc_bast.*'              => 'Dokumen BAST',
         ];
     }
 
@@ -166,13 +184,11 @@ class StoreJobPackageRequest extends FormRequest
             } else {
                 $clean = str_replace(',', '', $clean);
             }
-        }
-        elseif (strpos($clean, '.') !== false) {
+        } elseif (strpos($clean, '.') !== false) {
             if (substr_count($clean, '.') > 1 || preg_match('/\.\d{3}$/', $clean)) {
                 $clean = str_replace('.', '', $clean);
             }
-        }
-        elseif (strpos($clean, ',') !== false) {
+        } elseif (strpos($clean, ',') !== false) {
             $clean = str_replace(',', '.', $clean);
         }
 

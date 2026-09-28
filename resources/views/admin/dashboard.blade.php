@@ -44,7 +44,7 @@
         <!-- Stat Cards Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
-            <!-- Total Paket (Blue Card) -->
+            <!-- Total Paket -->
             <div class="animate-pop-up delay-100 bg-white p-6 rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                 <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-600"></div>
                 <div class="flex items-center justify-between mb-4">
@@ -60,8 +60,8 @@
                 <p class="text-xs text-slate-400 font-medium mt-1">Keseluruhan proyek terdaftar</p>
             </div>
 
-            <!-- Sedang Berjalan (Amber Card) -->
-            <a href="{{ route('admin.job-packages.index') }}#sedang-berjalan" class="block transition hover:scale-[1.01]">
+            <!-- Sedang Berjalan -->
+            <a href="{{ route('admin.job-packages.index') }}?status_filter=sedang_berjalan#table-section" class="block transition hover:scale-[1.01]">
                 <div class="animate-pop-up delay-200 bg-white p-6 rounded-2xl border border-amber-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
                     <div class="flex items-center justify-between mb-4">
@@ -78,8 +78,8 @@
                 </div>
             </a>
 
-            <!-- Selesai (Emerald Card) -->
-            <a href="{{ route('admin.job-packages.index') }}#selesai" class="block transition hover:scale-[1.01]">
+            <!-- Selesai -->
+            <a href="{{ route('admin.job-packages.index') }}?status_filter=selesai#table-section" class="block transition hover:scale-[1.01]">
                 <div class="animate-pop-up delay-300 bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
                     <div class="flex items-center justify-between mb-4">
@@ -96,8 +96,8 @@
                 </div>
             </a>
 
-            <!-- Job Package Batal (Slate Card) -->
-            <a href="{{ route('admin.job-packages.index') }}#batal" class="block transition hover:scale-[1.01]">
+            <!-- Job Package Batal -->
+            <a href="{{ route('admin.job-packages.index') }}?status_filter=batal#table-section" class="block transition hover:scale-[1.01]">
                 <div class="animate-pop-up delay-400 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-slate-500"></div>
                     <div class="flex items-center justify-between mb-4">
@@ -110,7 +110,7 @@
                         </div>
                     </div>
                     <h3 class="text-3xl font-black text-slate-600">{{ number_format($stats['cancelled'] ?? 0, 0, ',', '.') }}</h3>
-                    <p class="text-xs text-slate-400 font-medium mt-1">Dibatalkan, tidak dihitung dalam statistik lain</p>
+                    <p class="text-xs text-slate-400 font-medium mt-1">Dibatalkan</p>
                 </div>
             </a>
 
@@ -242,270 +242,264 @@
         </div>
 
         <!-- Table Section -->
-        <div class="animate-pop-up delay-600 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden mt-8 min-w-0">
+        <div id="table-section" class="animate-pop-up delay-600 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden mt-8 min-w-0">
             <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
                 <div>
                     <h2 class="text-lg font-black text-slate-800 uppercase tracking-wide">Job Package Terbaru</h2>
                     <p class="text-sm text-slate-500 mt-1">Daftar paket pekerjaan terbaru yang terdaftar di sistem.</p>
                 </div>
                 <a href="{{ route('admin.job-packages.index') }}" 
-                   class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0f2b5c] to-blue-900 text-white font-bold text-xs transition-all duration-300 shadow-md shadow-blue-900/20 hover:shadow-[0_0_20px_rgba(245,158,11,0.65)] hover:border-amber-400 border border-transparent hover:scale-105 whitespace-nowrap">
+                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0f2b5c] to-blue-900 text-white font-bold text-xs transition-all duration-300 shadow-md hover:scale-105">
                     <span>Lihat Semua</span>
                     <span class="text-amber-400 font-extrabold text-sm">&rarr;</span>
                 </a>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse min-w-[1000px]">
+                <table class="w-full text-left border-collapse min-w-[1100px]">
                     <thead>
-                        <tr class="bg-slate-50/60 text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100">
-                            <th class="px-6 py-4 w-[38%]">JOB PACKAGE & SURAT</th>
-                            <th class="px-6 py-4 w-[20%]">REFERENSI</th>
-                            <th class="px-6 py-4 w-[18%]">JADWAL</th>
-                            <th class="px-6 py-4 w-[14%]">STATUS & PROGRES</th>
-                            <th class="px-6 py-4 text-center w-[10%]">AKSI</th>
+                        <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+                            <th class="py-4 px-5 w-3/12 min-w-[260px]">Job Package (SM01)</th>
+                            <th class="py-4 px-4 w-3/12 min-w-[210px]">No. Notifikasi & SO</th>
+                            <th class="py-4 px-4 w-2/12 min-w-[130px]">Owner Estimate</th>
+                            <th class="py-4 px-4 w-2/12 min-w-[130px]">No. PO</th>
+                            <th class="py-4 px-4 w-2/12 min-w-[150px]">Status & Progres</th>
+                            <th class="py-4 px-4 text-center min-w-[140px]">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-xs">
+                    <tbody class="divide-y divide-slate-100 text-xs font-medium text-slate-600 bg-white">
                         @forelse ($latestJobs as $job)
                             @php
-                                $progress = max(0, min(100, (float) ($job->hasil_progres ?? 0)));
+                                $val = floatval(str_replace(',', '.', $job->hasil_progres ?? 0));
+                                $valClamped = min(max($val, 0), 100);
                                 $isCancelled = $job->status === 'batal';
                                 
-                                // Ambil semua No. Surat / BAK (Mencakup relasi, JSON, string koma, atau newline)
-                                $suratDocsList = [];
+                                $statusText = $isCancelled ? 'Dibatalkan' : ($valClamped >= 100 ? 'Selesai' : ($valClamped > 0 ? 'Sedang Berjalan' : 'Belum Mulai'));
+                                $statusBadge = $isCancelled ? 'bg-rose-50 text-rose-700 border-rose-200' : ($valClamped >= 100 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($valClamped > 0 ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-600 border-slate-200'));
+                                $barBg = $isCancelled ? 'bg-rose-500' : ($valClamped >= 100 ? 'bg-emerald-500' : 'bg-blue-600');
                                 
-                                if (isset($job->suratBakDocs) && $job->suratBakDocs->count() > 0) {
-                                    foreach ($job->suratBakDocs as $sDoc) {
-                                        $val = $sDoc->no_surat ?? $sDoc->no_surat_bak_doc ?? $sDoc->nomor_surat ?? null;
-                                        if (!empty($val)) {
-                                            $suratDocsList[] = $val;
-                                        }
-                                    }
-                                }
-                                
-                                if (empty($suratDocsList)) {
-                                    $rawSurat = $job->no_surat_bak_doc ?? $job->no_surat ?? null;
-                                    if (!empty($rawSurat)) {
-                                        if (is_array($rawSurat)) {
-                                            $suratDocsList = $rawSurat;
-                                        } else {
-                                            $decoded = json_decode($rawSurat, true);
-                                            if (is_array($decoded)) {
-                                                $suratDocsList = $decoded;
-                                            } else {
-                                                $suratDocsList = preg_split('/[\n\r,]+/', $rawSurat);
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                $suratDocsList = array_values(array_filter(array_map('trim', (array)$suratDocsList)));
-
-                                // PO
-                                $pos = $job->pos;
-                                $firstPo = $pos ? $pos->first() : null;
-                                $extraPoCount = $pos ? ($pos->count() - 1) : 0;
-
-                                // Helper mengambil nomor PO
-                                $getPoNumber = function($poItem) {
-                                    if (is_object($poItem)) {
-                                        return $poItem->no_po ?? $poItem->po_number ?? $poItem->nomor_po ?? $poItem->no_po_doc ?? '-';
-                                    }
-                                    if (is_array($poItem)) {
-                                        return $poItem['no_po'] ?? $poItem['po_number'] ?? $poItem['nomor_po'] ?? $poItem['no_po_doc'] ?? '-';
-                                    }
-                                    return is_scalar($poItem) ? (string)$poItem : '-';
-                                };
-
-                                // Helper mengambil harga PO
-                                $getPoPrice = function($poItem) {
-                                    $rawVal = null;
-
-                                    if (is_object($poItem)) {
-                                        $rawVal = $poItem->nilai_po ?? $poItem->harga ?? $poItem->nominal ?? $poItem->nilai 
-                                            ?? $poItem->total ?? $poItem->harga_po ?? $poItem->nilai_pekerjaan 
-                                            ?? $poItem->nilai_kontrak ?? $poItem->amount ?? $poItem->price ?? $poItem->total_harga ?? null;
-                                    } elseif (is_array($poItem)) {
-                                        $rawVal = $poItem['nilai_po'] ?? $poItem['harga'] ?? $poItem['nominal'] ?? $poItem['nilai'] 
-                                            ?? $poItem['total'] ?? $poItem['harga_po'] ?? $poItem['nilai_pekerjaan'] 
-                                            ?? $poItem['nilai_kontrak'] ?? $poItem['amount'] ?? $poItem['price'] ?? $poItem['total_harga'] ?? null;
-                                    }
-
-                                    if ($rawVal !== null && $rawVal !== '') {
-                                        $cleaned = preg_replace('/[^0-9]/', '', (string)$rawVal);
-                                        if ($cleaned !== '') {
-                                            return 'Rp ' . number_format((float)$cleaned, 0, ',', '.');
-                                        }
-                                    }
-                                    
-                                    return null;
-                                };
+                                // Judul Splitting
+                                $judulParts = array_map('trim', explode(',', $job->job_package));
+                                $firstJudul = $judulParts[0];
+                                $sisaJudulCount = count($judulParts) - 1;
 
                                 // Departemen
-                                $deptList = $job->permintaanDaris ? $job->permintaanDaris->pluck('permintaan_dari')->filter()->join(', ') : '';
-                                if (empty($deptList)) {
-                                    $deptList = $job->departemen ?? '-';
-                                }
+                                $deptList = $job->permintaanDaris ? $job->permintaanDaris->pluck('permintaan_dari')->filter()->join(', ') : ($job->departemen ?? '-');
                             @endphp
-                            <tr class="hover:bg-slate-50/50 transition-colors">
-                                <!-- JOB PACKAGE & SURAT -->
-                                <td class="px-6 py-5 align-top">
-                                    <a href="{{ route('admin.job-packages.show', $job) }}" class="text-sm font-black text-slate-900 hover:text-blue-700 leading-snug block mb-2">
-                                        {{ $job->job_package }}
-                                    </a>
-                                    
-                                    <div class="space-y-2 text-slate-500 font-medium">
-                                        <!-- No. Surat / BAK Tampil Vertikal (1 Nomor 1 Baris Tanpa Sembunyi) -->
-                                        <div class="flex flex-col gap-1">
-                                            <span class="text-slate-400 font-semibold text-xs">No. Surat / BAK:</span>
-                                            @if(count($suratDocsList) > 0)
-                                                <div class="flex flex-col space-y-1 w-full">
-                                                    @foreach($suratDocsList as $sNum)
-                                                        <div class="text-xs font-bold text-blue-700 bg-blue-50/80 border border-blue-200/80 px-2.5 py-1 rounded-lg w-fit leading-tight break-all">
-                                                            {{ $sNum }}
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            @else
-                                                <span class="text-slate-400 font-semibold text-xs">-</span>
-                                            @endif
-                                        </div>
 
-                                        <p><span class="text-slate-400">Departemen:</span> <span class="text-slate-700 font-medium">{{ $deptList }}</span></p>
-                                        <p><span class="text-slate-400">SO:</span> <span class="text-slate-900 font-bold">{{ $job->no_service_order ?? '-' }}</span></p>
-                                    </div>
-                                </td>
+                            <tr class="hover:bg-slate-50/70 transition-colors duration-150 align-top">
 
-                                <!-- REFERENSI -->
-                                <td class="px-6 py-5 align-top">
-                                    <div class="space-y-1 text-slate-500 font-medium text-xs">
-                                        <!-- Fitur PO dengan Popover Alpine.js -->
-                                        <div class="flex items-center gap-1.5 flex-wrap" x-data="{ openPO: false }">
-                                            <span class="text-slate-400 font-medium">No. PO:</span>
-                                            
-                                            @if($pos && $pos->count() > 0)
-                                                <span class="font-bold text-slate-800">{{ $getPoNumber($firstPo) }}</span>
+                                <!-- 1. JOB PACKAGE (SM01) -->
+                                <td class="py-5 px-5" x-data="{ openBakModal: false, openJobModal: false }">
+                                    <div class="group block mb-2">
+                                        <a href="{{ route('admin.job-packages.show', $job) }}" class="text-sm font-extrabold text-slate-900 hover:text-blue-700 transition-colors leading-snug inline">
+                                            {{ $firstJudul }}
+                                        </a>
+                                        
+                                        @if($sisaJudulCount > 0)
+                                            <button @click="openJobModal = true" type="button" class="inline-flex items-center px-1.5 py-0.5 ml-1 rounded text-[10px] font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-colors focus:outline-none">
+                                                +{{ $sisaJudulCount }} lainnya
+                                            </button>
 
-                                                @if($extraPoCount > 0)
-                                                    <div class="relative inline-block">
-                                                        <button @click="openPO = !openPO" 
-                                                                @click.outside="openPO = false"
-                                                                type="button"
-                                                                class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors cursor-pointer border border-amber-300">
-                                                            +{{ $extraPoCount }} PO
-                                                        </button>
-
-                                                        <!-- Popover Daftar PO & Harga -->
-                                                        <div x-show="openPO" 
-                                                                x-transition:enter="transition ease-out duration-150"
-                                                                x-transition:enter-start="opacity-0 scale-95"
-                                                                x-transition:enter-end="opacity-100 scale-100"
-                                                                x-transition:leave="transition ease-in duration-100"
-                                                                x-transition:leave-start="opacity-100 scale-100"
-                                                                x-transition:leave-end="opacity-0 scale-95"
-                                                                class="absolute left-0 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-xl p-3 z-30" 
-                                                                style="display: none;">
-                                                            
-                                                            <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-100">
-                                                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Daftar No. PO & Harga</span>
-                                                                <span class="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full font-bold border border-amber-200/60">{{ $pos->count() }} Total</span>
+                                            <!-- Modal Rincian Job Package -->
+                                            <template x-teleport="body">
+                                                <div x-show="openJobModal" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                                                    <div @click.away="openJobModal = false" @keydown.escape.window="openJobModal = false" x-show="openJobModal" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden text-slate-800">
+                                                        <div class="px-5 py-4 text-white flex justify-between items-center bg-[#0f2b5c]">
+                                                            <div>
+                                                                <h4 class="font-bold text-sm">Rincian Job Package</h4>
+                                                                <p class="text-xs text-blue-200 font-sans mt-0.5">Berisi {{ count($judulParts) }} Paket Pekerjaan</p>
                                                             </div>
-
-                                                            <ul class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                                                                @foreach($pos as $poItem)
-                                                                    @php
-                                                                        $poNum = $getPoNumber($poItem);
-                                                                        $poPrice = $getPoPrice($poItem);
-                                                                    @endphp
-                                                                    <li class="flex items-center justify-between gap-2 text-xs font-semibold text-slate-700 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
-                                                                        <span class="select-all font-bold text-slate-800">{{ $poNum }}</span>
-                                                                        @if($poPrice)
-                                                                            <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/70 shrink-0">
-                                                                                {{ $poPrice }}
-                                                                            </span>
-                                                                        @else
-                                                                            <span class="text-[10px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded shrink-0">
-                                                                                Tanpa Harga
-                                                                            </span>
-                                                                        @endif
-                                                                    </li>
-                                                                @endforeach
-                                                            </ul>
+                                                            <button @click="openJobModal = false" type="button" class="text-white/70 hover:text-white text-lg font-bold px-2 hover:bg-white/10 rounded-lg transition-colors">✕</button>
+                                                        </div>
+                                                        <div class="p-5 max-h-[60vh] overflow-y-auto">
+                                                            <table class="w-full text-left border-collapse text-xs">
+                                                                <thead>
+                                                                    <tr class="bg-slate-100 text-slate-700 font-bold uppercase border-b border-slate-200">
+                                                                        <th class="py-2 px-3 w-8 text-center"></th>
+                                                                        <th class="py-2 px-3">Nama Job Package</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody class="divide-y divide-slate-100">
+                                                                    @foreach($judulParts as $index => $item)
+                                                                    <tr class="hover:bg-slate-50">
+                                                                        <td class="py-2.5 px-3 text-center font-bold text-slate-400">-</td>
+                                                                        <td class="py-2.5 px-3 font-semibold text-slate-800">{{ $item }}</td>
+                                                                    </tr>
+                                                                    @endforeach
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        <div class="bg-slate-50 px-5 py-3.5 border-t border-slate-100 flex justify-end">
+                                                            <button @click="openJobModal = false" type="button" class="px-4 py-1.5 text-white font-bold rounded-lg text-xs transition-colors bg-[#0f2b5c]">Tutup</button>
                                                         </div>
                                                     </div>
+                                                </div>
+                                            </template>
+                                        @endif
+                                    </div>
+                                    
+                                    <div class="space-y-1 text-xs text-slate-500">
+                                        <p>
+                                            <span class="text-slate-400 font-medium">Periode:</span>
+                                            <span class="ml-1 text-slate-700">{{ $job->periode ?? '-' }}</span>
+                                        </p>
+
+                                        @if(isset($job->suratBakDocs) && $job->suratBakDocs->isNotEmpty())
+                                            <div class="flex items-start">
+                                                <span class="text-slate-400 font-medium shrink-0 mr-1">Dok:</span>
+                                                <div>
+                                                    <button @click="openBakModal = true" type="button" class="text-left font-semibold text-blue-700 hover:underline focus:outline-none">
+                                                        {{ $job->suratBakDocs->first()->no_surat_bak_doc ?? $job->suratBakDocs->first()->no_surat ?? '-' }}
+                                                    </button>
+                                                    @if($job->suratBakDocs->count() > 1)
+                                                        <button @click="openBakModal = true" type="button" class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 focus:outline-none">
+                                                            +{{ $job->suratBakDocs->count() - 1 }} lainnya
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            <!-- Modal BAK / Dokumen -->
+                                            <template x-teleport="body">
+                                                <div x-show="openBakModal" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                                                    <div @click.away="openBakModal = false" @keydown.escape.window="openBakModal = false" x-show="openBakModal" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden text-slate-800">
+                                                        <div class="px-5 py-4 text-white flex justify-between items-center bg-[#0f2b5c]">
+                                                            <div>
+                                                                <h4 class="font-bold text-sm">Daftar Dokumen</h4>
+                                                                <p class="text-xs text-blue-200 font-sans mt-0.5 truncate max-w-md">{{ $firstJudul }}</p>
+                                                            </div>
+                                                            <button @click="openBakModal = false" type="button" class="text-white/70 hover:text-white text-lg font-bold px-2 hover:bg-white/10 rounded-lg transition-colors">✕</button>
+                                                        </div>
+                                                        <div class="p-5 max-h-[60vh] overflow-y-auto space-y-2.5">
+                                                            @foreach($job->suratBakDocs as $index => $surat)
+                                                            <div class="flex gap-3 items-start bg-slate-50 rounded-xl p-3.5 border border-slate-200/60">
+                                                                <span class="shrink-0 font-bold text-slate-400 text-sm mt-0.5">-</span>
+                                                                <p class="text-xs font-mono text-slate-700 leading-relaxed whitespace-pre-line">{{ $surat->no_surat_bak_doc ?? $surat->no_surat ?? '-' }}</p>
+                                                            </div>
+                                                            @endforeach
+                                                        </div>
+                                                        <div class="bg-slate-50 px-5 py-3.5 border-t border-slate-100 flex items-center justify-between">
+                                                            <span class="text-[11px] font-semibold text-slate-500">{{ $job->suratBakDocs->count() }} dokumen tercatat</span>
+                                                            <button @click="openBakModal = false" type="button" class="px-4 py-1.5 text-white font-bold rounded-lg text-xs transition-colors bg-[#0f2b5c]">Tutup</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        @else
+                                            <p><span class="text-slate-400 font-medium">Dok:</span> <span class="ml-1 text-slate-700">-</span></p>
+                                        @endif
+
+                                        <p>
+                                            <span class="text-slate-400 font-medium">Dept:</span> 
+                                            <span class="ml-1 font-medium text-slate-700">{{ $deptList ?: '-' }}</span>
+                                        </p>
+                                    </div>
+                                </td>
+
+                                <!-- 2. NO SERVICE NOTIFIKASI & SERVICE ORDER -->
+                                <td class="py-5 px-4">
+                                    <div class="space-y-1 text-xs">
+                                        <div><span class="text-slate-400">Notif:</span> <span class="font-mono text-slate-600">{{ $job->no_service_notifikasi ?: '-' }}</span></div>
+                                        <div><span class="text-slate-400">SO:</span> <span class="font-mono font-semibold text-slate-700">{{ $job->no_service_order ?: '-' }}</span></div>
+                                    </div>
+                                </td>
+
+                                <!-- 3. OWNER ESTIMATE -->
+                                <td class="py-5 px-4 whitespace-nowrap font-bold font-mono text-slate-800">
+                                    Rp {{ number_format($job->owner_estimate ?? 0, 0, ',', '.') }}
+                                </td>
+
+                                <!-- 4. NO. PO -->
+                                <td class="py-5 px-4" x-data="{ openPoModal: false }">
+                                    <div class="text-xs">
+                                        @if(isset($job->pos) && $job->pos->count() > 0)
+                                            <div class="flex flex-wrap items-center gap-1">
+                                                <button @click="openPoModal = true" type="button" class="font-bold text-blue-900 hover:text-blue-700 hover:underline text-left font-mono">
+                                                    {{ $job->pos->first()->po_number ?? $job->pos->first()->no_po }}
+                                                </button>
+                                                @if($job->pos->count() > 1)
+                                                    <button @click="openPoModal = true" type="button" class="bg-amber-100 text-amber-800 border border-amber-300/80 text-[10px] font-bold px-1.5 py-0.5 rounded-md hover:bg-amber-200 transition-colors">
+                                                        +{{ $job->pos->count() - 1 }} PO
+                                                    </button>
                                                 @endif
-                                            @elseif(!empty($job->no_po))
-                                                <span class="font-bold text-slate-800">{{ $job->no_po }}</span>
-                                            @else
-                                                <span class="text-slate-400">-</span>
-                                            @endif
-                                        </div>
+                                            </div>
 
-                                        <!-- Notif -->
-                                        <div>
-                                            <span class="text-slate-400">Notif:</span> 
-                                            <span class="text-slate-700 font-medium">{{ $job->no_service_notifikasi ?? '-' }}</span>
-                                        </div>
-
-                                        <!-- Estimasi OE -->
-                                        <div>
-                                            <span class="text-slate-400">Estimasi OE:</span> 
-                                            <strong class="text-slate-800">Rp {{ number_format($job->owner_estimate ?? 0, 0, ',', '.') }}</strong>
-                                        </div>
+                                            <!-- Modal PO -->
+                                            <template x-teleport="body">
+                                                <div x-show="openPoModal" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                                                    <div @click.away="openPoModal = false" x-show="openPoModal" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden text-slate-800">
+                                                        <div class="px-5 py-4 text-white flex justify-between items-center bg-[#0f2b5c]">
+                                                            <div><h4 class="font-bold text-sm">Rincian PO</h4></div>
+                                                            <button @click="openPoModal = false" type="button" class="text-white/70 hover:text-white font-bold px-2 rounded-lg transition-colors">✕</button>
+                                                        </div>
+                                                        <div class="p-5 overflow-x-auto">
+                                                            <table class="w-full text-left border-collapse text-xs">
+                                                                <thead>
+                                                                    <tr class="bg-slate-100 text-slate-700 font-bold uppercase border-b border-slate-200">
+                                                                        <th class="py-2 px-3 w-8 text-center"></th>
+                                                                        <th class="py-2 px-3">No. PO</th>
+                                                                        <th class="py-2 px-3 text-right">Nilai PO</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody class="divide-y divide-slate-100">
+                                                                    @foreach($job->pos as $index => $po)
+                                                                    <tr class="hover:bg-slate-50">
+                                                                        <td class="py-2.5 px-3 text-center font-bold text-slate-400">-</td>
+                                                                        <td class="py-2.5 px-3 font-mono font-semibold text-amber-800">{{ $po->po_number ?? $po->no_po }}</td>
+                                                                        <td class="py-2.5 px-3 text-right font-bold font-mono">Rp {{ number_format($po->price ?? $po->harga ?? 0, 0, ',', '.') }}</td>
+                                                                    </tr>
+                                                                    @endforeach
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        <div class="bg-slate-50 px-5 py-3.5 border-t border-slate-100 flex justify-end">
+                                                            <button @click="openPoModal = false" type="button" class="px-4 py-1.5 text-white font-bold rounded-lg text-xs transition-colors bg-[#0f2b5c]">Tutup</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        @elseif(!empty($job->no_po))
+                                            <span class="font-bold text-slate-800 font-mono">{{ $job->no_po }}</span>
+                                        @else
+                                            <span class="text-slate-400">-</span>
+                                        @endif
                                     </div>
                                 </td>
 
-                                <!-- JADWAL -->
-                                <td class="px-6 py-5 align-top whitespace-nowrap">
-                                    <div class="space-y-2 text-slate-600 font-medium">
+                                <!-- 5. STATUS & PROGRES -->
+                                <td class="py-5 px-4 whitespace-nowrap">
+                                    <div class="flex flex-col gap-2 max-w-[140px]">
+                                        <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border w-fit {{ $statusBadge }}">
+                                            {{ $statusText }}
+                                        </span>
                                         <div class="flex items-center gap-2">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                            <span>Mulai: <strong class="text-slate-800">{{ optional($job->tanggal_mulai_pekerjaan)->format('d M Y') ?: '-' }}</strong></span>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                            </svg>
-                                            <span>Target: <strong class="text-slate-800">{{ optional($job->tanggal_selesai_pekerjaan)->format('d M Y') ?: '-' }}</strong></span>
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <!-- STATUS & PROGRES -->
-                                <td class="px-6 py-5 align-top whitespace-nowrap">
-                                    <div class="space-y-2.5">
-                                        <div>
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold {{ $isCancelled ? 'bg-rose-50 text-rose-600' : ($progress >= 100 ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600') }}">
-                                                {{ $isCancelled ? 'Dibatalkan' : ($progress >= 100 ? 'Selesai 100%' : 'Sedang Berjalan') }}
+                                            <div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/80">
+                                                <div class="h-full rounded-full {{ $barBg }} transition-all duration-700" style="width: {{ $valClamped }}%"></div>
+                                            </div>
+                                            <span class="text-xs font-black text-blue-900 shrink-0 font-mono">
+                                                {{ number_format($valClamped, 0) }}%
                                             </span>
                                         </div>
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-20 bg-slate-100 rounded-full h-2 overflow-hidden">
-                                                <div class="h-2 rounded-full {{ $progress >= 100 ? 'bg-emerald-500' : 'bg-blue-600' }}" style="width: {{ $progress }}%"></div>
-                                            </div>
-                                            <span class="text-xs font-black text-blue-900">{{ number_format($progress, 0) }}%</span>
-                                        </div>
                                     </div>
                                 </td>
 
-                                <!-- AKSI -->
-                                <td class="px-6 py-5 align-top text-center whitespace-nowrap">
-                                    <a href="{{ route('admin.job-packages.show', $job) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100 transition-colors">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                        Detail
-                                    </a>
+                                <!-- 6. AKSI -->
+                                <td class="py-5 px-4 text-center whitespace-nowrap">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <a href="{{ route('admin.job-packages.show', $job) }}" title="Detail" class="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-md text-xs font-bold transition-colors">
+                                            Detail
+                                        </a>
+                                        <a href="{{ route('admin.job-packages.edit', $job) }}" title="Edit Progres" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-md text-xs font-bold transition-colors">
+                                            Edit
+                                        </a>
+                                    </div>
                                 </td>
+
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">
+                                <td colspan="6" class="py-16 px-4 text-center bg-slate-50/50 font-bold text-slate-500">
                                     Belum ada data pekerjaan terbaru.
                                 </td>
                             </tr>
@@ -514,39 +508,37 @@
                 </table>
             </div>
 
-        <!-- Pagination Bar (Aksen Warna Kuning / Amber) -->
-        @if(method_exists($latestJobs, 'hasPages') && $latestJobs->hasPages())
-            <div class="p-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="text-xs text-slate-500 font-medium">
-                    Menampilkan <span class="font-bold text-slate-700">{{ $latestJobs->firstItem() }}</span> - <span class="font-bold text-slate-700">{{ $latestJobs->lastItem() }}</span> dari <span class="font-bold text-slate-700">{{ $latestJobs->total() }}</span> data
-                </div>
-                
-                <nav role="navigation" aria-label="Pagination Navigation" class="inline-flex items-center rounded-lg border border-amber-400 bg-white overflow-hidden shadow-sm">
-                    {{-- Previous Page Link --}}
-                    @if ($latestJobs->onFirstPage())
-                        <span class="px-3.5 py-2 text-xs font-bold text-amber-300 cursor-not-allowed bg-slate-50">«</span>
-                    @else
-                        <a href="{{ $latestJobs->previousPageUrl() }}" class="px-3.5 py-2 text-xs font-bold text-amber-600 hover:bg-amber-50 transition-colors">«</a>
-                    @endif
-
-                    {{-- Pagination Elements --}}
-                    @foreach ($latestJobs->getUrlRange(1, $latestJobs->lastPage()) as $page => $url)
-                        @if ($page == $latestJobs->currentPage())
-                            <span class="px-4 py-2 text-xs font-extrabold bg-amber-500 text-white border-l border-amber-200">{{ $page }}</span>
+            <!-- Pagination Bar -->
+            @if(method_exists($latestJobs, 'hasPages') && $latestJobs->hasPages())
+                <div class="p-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-xs text-slate-500 font-medium">
+                        Menampilkan <span class="font-bold text-slate-700">{{ $latestJobs->firstItem() }}</span> - <span class="font-bold text-slate-700">{{ $latestJobs->lastItem() }}</span> dari <span class="font-bold text-slate-700">{{ $latestJobs->total() }}</span> data
+                    </div>
+                    
+                    <nav role="navigation" aria-label="Pagination Navigation" class="inline-flex items-center rounded-lg border border-amber-400 bg-white overflow-hidden shadow-sm">
+                        @if ($latestJobs->onFirstPage())
+                            <span class="px-3.5 py-2 text-xs font-bold text-amber-300 cursor-not-allowed bg-slate-50">«</span>
                         @else
-                            <a href="{{ $url }}" class="px-4 py-2 text-xs font-bold text-amber-600 hover:bg-amber-50 border-l border-amber-200 transition-colors">{{ $page }}</a>
+                            <a href="{{ $latestJobs->previousPageUrl() }}" class="px-3.5 py-2 text-xs font-bold text-amber-600 hover:bg-amber-50 transition-colors">«</a>
                         @endif
-                    @endforeach
 
-                    {{-- Next Page Link --}}
-                    @if ($latestJobs->hasMorePages())
-                        <a href="{{ $latestJobs->nextPageUrl() }}" class="px-3.5 py-2 text-xs font-bold text-amber-600 hover:bg-amber-50 border-l border-amber-200 transition-colors">»</a>
-                    @else
-                        <span class="px-3.5 py-2 text-xs font-bold text-amber-300 cursor-not-allowed bg-slate-50 border-l border-amber-200">»</span>
-                    @endif
-                </nav>
-            </div>
-        @endif
+                        @foreach ($latestJobs->getUrlRange(1, $latestJobs->lastPage()) as $page => $url)
+                            @if ($page == $latestJobs->currentPage())
+                                <span class="px-4 py-2 text-xs font-extrabold bg-amber-500 text-white border-l border-amber-200">{{ $page }}</span>
+                            @else
+                                <a href="{{ $url }}" class="px-4 py-2 text-xs font-bold text-amber-600 hover:bg-amber-50 border-l border-amber-200 transition-colors">{{ $page }}</a>
+                            @endif
+                        @endforeach
+
+                        @if ($latestJobs->hasMorePages())
+                            <a href="{{ $latestJobs->nextPageUrl() }}" class="px-3.5 py-2 text-xs font-bold text-amber-600 hover:bg-amber-50 border-l border-amber-200 transition-colors">»</a>
+                        @else
+                            <span class="px-3.5 py-2 text-xs font-bold text-amber-300 cursor-not-allowed bg-slate-50 border-l border-amber-200">»</span>
+                        @endif
+                    </nav>
+                </div>
+            @endif
+        </div>
 
         <!-- Script Rendering Chart -->
         <script>
