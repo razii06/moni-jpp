@@ -27,6 +27,7 @@ Route::middleware(['auth', 'throttle:120,1'])->prefix('admin')->as('admin.')->gr
     // User Management
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
     // Custom Job Package Routes (Wajib didefinisikan sebelum Route::resource)
     Route::get('/job-packages/export', [JobPackageController::class, 'export'])

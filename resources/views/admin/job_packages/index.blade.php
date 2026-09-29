@@ -13,12 +13,16 @@
                     </svg>
                     Export Excel
                 </a>
-                <a href="{{ route('admin.job-packages.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-900/20 transition-all hover:-translate-y-0.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Tambah Job Package
-                </a>
+
+                <!-- Tombol Tambah Job Package dengan Gate 'create-data' -->
+                @can('create-data')
+                    <a href="{{ route('admin.job-packages.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-900/20 transition-all hover:-translate-y-0.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Tambah Job Package
+                    </a>
+                @endcan
             </div>
         </div>
 
@@ -396,12 +400,15 @@
                                                 <span>Detail</span>
                                             </a>
 
-                                            <a href="{{ route('admin.job-packages.edit', $jp) }}" title="Edit Job Package" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                                </svg>
-                                                <span>Edit</span>
-                                            </a>
+                                            <!-- Tombol Edit dengan Gate 'edit-data' -->
+                                            @can('edit-data')
+                                                <a href="{{ route('admin.job-packages.edit', $jp) }}" title="Edit Job Package" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                    </svg>
+                                                    <span>Edit</span>
+                                                </a>
+                                            @endcan
                                             
                                             @if($isCancelled)
                                                 <form method="POST" action="{{ route('admin.job-packages.reactivate', $jp) }}" class="inline">
@@ -425,7 +432,8 @@
                                                 </form>
                                             @endif
 
-                                            @if(auth()->check() && method_exists(auth()->user(), 'isAdmin') && auth()->user()->isAdmin())
+                                            <!-- Tombol Hapus dengan Gate 'delete-data' menggantikan pengondisian manual sebelumnya -->
+                                            @can('delete-data')
                                                 <form method="POST" action="{{ route('admin.job-packages.destroy', $jp) }}" onsubmit="return confirm('Hapus Job Package ini secara permanen?')" class="inline">
                                                     @csrf @method('DELETE')
                                                     <button type="submit" title="Hapus Permanen" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
@@ -435,7 +443,7 @@
                                                         <span>Hapus</span>
                                                     </button>
                                                 </form>
-                                            @endif
+                                            @endcan
                                         </div>
                                     </td>
                                 </tr>

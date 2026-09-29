@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Dokumentasi;
 use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -89,6 +90,9 @@ class DokumentasiController extends Controller
 
     public function destroy(Dokumentasi $dokumentasi)
     {
+        // Memproteksi aksi hapus di tingkat backend server
+        Gate::authorize('delete-data');
+
         if ($dokumentasi->kategori !== 'Tautan Video' && !empty($dokumentasi->file_path)) {
             $path = $dokumentasi->file_path;
 

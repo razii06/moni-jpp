@@ -10,6 +10,7 @@ use App\Services\GoogleDriveService;
 use App\Services\JobPackageExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class JobPackageController extends Controller
@@ -120,11 +121,17 @@ class JobPackageController extends Controller
 
     public function create()
     {
+        // Cek apakah user punya hak menambah data
+        Gate::authorize('create-data');
+
         return view('admin.job_packages.create');
     }
 
     public function store(StoreJobPackageRequest $request)
     {
+        // Cek apakah user punya hak menambah data
+        Gate::authorize('create-data');
+
         $jobPackage = null;
 
         DB::transaction(function () use ($request, &$jobPackage) {
@@ -194,12 +201,18 @@ class JobPackageController extends Controller
 
     public function edit(JobPackage $jobPackage)
     {
+        // Cek apakah user punya hak mengedit data
+        Gate::authorize('edit-data');
+
         $jobPackage->load(['pos', 'suratBakDocs', 'permintaanDaris']);
         return view('admin.job_packages.edit', compact('jobPackage'));
     }
 
     public function update(UpdateJobPackageRequest $request, JobPackage $jobPackage)
     {
+        // Cek apakah user punya hak mengedit data
+        Gate::authorize('edit-data');
+
         DB::transaction(function () use ($request, $jobPackage) {
             $validated = $request->validated();
             $poList = $request->input('pos', $request->input('po_items', []));
@@ -279,6 +292,9 @@ class JobPackageController extends Controller
 
     public function destroy(JobPackage $jobPackage)
     {
+        // Cek apakah user punya hak menghapus data
+        Gate::authorize('delete-data');
+
         if (!auth()->user()->isAdmin()) {
             abort(403, 'Hanya Admin yang dapat menghapus Job Package secara permanen.');
         }
@@ -318,6 +334,9 @@ class JobPackageController extends Controller
 
     public function cancel(JobPackage $jobPackage)
     {
+        // Cek apakah user punya hak mengedit data
+        Gate::authorize('edit-data');
+
         $jobPackage->update(['status' => 'batal']);
         $this->logActivity($jobPackage, 'cancelled', 'Job Package dibatalkan.');
 
@@ -326,6 +345,9 @@ class JobPackageController extends Controller
 
     public function reactivate(JobPackage $jobPackage)
     {
+        // Cek apakah user punya hak mengedit data
+        Gate::authorize('edit-data');
+
         $jobPackage->update(['status' => 'aktif']);
         $this->logActivity($jobPackage, 'reactivated', 'Job Package diaktifkan kembali.');
 
@@ -334,6 +356,9 @@ class JobPackageController extends Controller
 
     public function deleteDocument(JobPackage $jobPackage, string $field, Request $request)
     {
+        // Cek apakah user punya hak mengedit data
+        Gate::authorize('edit-data');
+
         if (!in_array($field, $this->docFields) || empty($jobPackage->$field)) {
             return back()->with('error', 'Dokumen tidak ditemukan atau tidak valid.');
         }

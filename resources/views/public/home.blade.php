@@ -63,8 +63,7 @@
 
             <!-- Deskripsi Singkat -->
             <p class="text-sm sm:text-base text-white font-bold leading-relaxed max-w-2xl mx-auto drop-shadow-sm" style="color: #ffffff;">
-                Pantau status real-time, alokasi anggaran (OE), penerbitan PO/SO, dan progres
-                pencapaian pekerjaan Dept. JPP secara akurat dan terbuka.
+                Pantau status real-time, penerbitan PO/SO, dan progres pencapaian pekerjaan Dept. JPP secara akurat dan terbuka.
             </p>
 
             <!-- Tombol Aksi -->
@@ -177,8 +176,8 @@
                             <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Urutkan: Terlama</option>
                             <option value="progress_asc" {{ request('sort') == 'progress_asc' ? 'selected' : '' }}>Progres: Terendah</option>
                             <option value="progress_desc" {{ request('sort') == 'progress_desc' ? 'selected' : '' }}>Progres: Tertinggi</option>
-                            <option value="oe_desc" {{ request('sort') == 'oe_desc' ? 'selected' : '' }}>OE: Terbesar</option>
-                            <option value="oe_asc" {{ request('sort') == 'oe_asc' ? 'selected' : '' }}>OE: Terkecil</option>
+                            {{-- <option value="oe_desc" {{ request('sort') == 'oe_desc' ? 'selected' : '' }}>OE: Terbesar</option> --}}
+                            {{-- <option value="oe_asc" {{ request('sort') == 'oe_asc' ? 'selected' : '' }}>OE: Terkecil</option> --}}
                             <option value="title_asc" {{ request('sort') == 'title_asc' ? 'selected' : '' }}>Nama: A - Z</option>
                         </select>
                         @if(request()->filled('search') || request()->filled('sort'))
@@ -196,8 +195,8 @@
                     <thead>
                         <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
                             <th class="py-4 px-5 w-3/12 min-w-[260px]">Job Package (SM01)</th>
-                            <th class="py-4 px-4 w-3/12 min-w-[230px]">No. Service Notifikasi & Service Order</th>
-                            <th class="py-4 px-4 w-2/12 min-w-[140px]">Owner Estimate</th>
+                            <th class="py-4 px-4 w-3/12 min-w-[230px]">No. Service Notifikasi & Order</th>
+                            {{-- <th class="py-4 px-4 w-2/12 min-w-[140px]">Owner Estimate</th> --}}
                             <th class="py-4 px-4 w-2/12 min-w-[140px]">No. PO</th>
                             <th class="py-4 px-4 w-2/12 min-w-[160px]">Status & Progres</th>
                             <th class="py-4 px-3 w-1/12 min-w-[60px] text-center"></th>
@@ -278,18 +277,18 @@
                                         <span class="font-mono text-slate-600">{{ $jp->no_service_notifikasi ?: '-' }}</span>
                                     </div>
                                     <div class="flex items-center gap-3">
-                                        <span class="text-slate-400 w-28 shrink-0">Service Order</span> 
+                                        <span class="text-slate-400 w-28 shrink-0">Order</span> 
                                         <span class="font-mono font-semibold text-slate-700">{{ $jp->no_service_order ?: '-' }}</span>
                                     </div>
                                 </div>
                             </td>
 
                             <!-- 3. OWNER ESTIMATE -->
-                            <td class="py-5 px-4 whitespace-nowrap">
+                            {{-- <td class="py-5 px-4 whitespace-nowrap">
                                 <span class="font-bold font-mono text-slate-800">
                                     Rp {{ number_format($jp->owner_estimate ?? 0, 0, ',', '.') }}
                                 </span>
-                            </td>
+                            </td> --}}
 
                             <!-- 4. NO. PO -->
                             <td class="py-5 px-4" x-data="{ openPoModal: false }">
@@ -377,7 +376,8 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="py-16 px-4 text-center bg-slate-50/50">
+                            {{-- Disesuaikan dari colspan="6" menjadi colspan="5" karena 1 kolom disembunyikan --}}
+                            <td colspan="5" class="py-16 px-4 text-center bg-slate-50/50">
                                 <p class="text-sm font-bold text-slate-500">Data Pekerjaan Tidak Ditemukan</p>
                             </td>
                         </tr>

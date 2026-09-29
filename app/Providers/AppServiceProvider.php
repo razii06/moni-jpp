@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 use Google\Client;
 use Google\Service\Drive;
 use Masbug\Flysystem\GoogleDriveAdapter;
@@ -43,6 +44,23 @@ class AppServiceProvider extends ServiceProvider
             $driver = new Filesystem($adapter);
 
             return new FilesystemAdapter($driver, $adapter);
+        });
+
+        // --- DEFINISI HAK AKSES (GATES) ---
+        
+        // 1. Akses Hapus (Hanya Admin)
+        Gate::define('delete-data', function ($user) {
+            return $user->role === 'admin';
+        });
+
+        // 2. Akses Tambah (Admin & PIC JPP)
+        Gate::define('create-data', function ($user) {
+            return in_array($user->role, ['admin', 'pic_jpp', 'staff']);
+        });
+
+        // 3. Akses Edit (Semua bisa)
+        Gate::define('edit-data', function ($user) {
+            return in_array($user->role, ['admin', 'pic_jpp', 'staff', 'super_vc']);
         });
     }
 }

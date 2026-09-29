@@ -28,7 +28,7 @@ class UserController extends Controller
             'username' => ['required', 'string', 'max:255', 'alpha_dash', 'unique:'.User::class],
             'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', Rules\Password::defaults()],
-            'role'     => ['required', 'in:admin,staff'],
+            'role'     => ['required', 'in:admin,pic_jpp,super_vc,staff'],
         ]);
 
         User::create([
@@ -40,5 +40,21 @@ class UserController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Akun berhasil dibuat!');
+    }
+
+    public function destroy(User $user)
+    {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
+
+        // Proteksi: Cegah admin menghapus akunnya sendiri yang sedang login
+        if (auth()->id() === $user->id) {
+            return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri!');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'Pengguna berhasil dihapus.');
     }
 }
