@@ -15,10 +15,16 @@ class GoogleDriveService
     public function __construct()
     {
         $this->client = new Client();
-        $this->client->setClientId(env('GOOGLE_DRIVE_CLIENT_ID'));
-        $this->client->setClientSecret(env('GOOGLE_DRIVE_CLIENT_SECRET'));
 
-        $token = $this->client->fetchAccessTokenWithRefreshToken(env('GOOGLE_DRIVE_REFRESH_TOKEN'));
+        // Menggunakan config() agar aman saat perintah config:cache dijalankan
+        $clientId = config('filesystems.disks.google.clientId') ?? env('GOOGLE_DRIVE_CLIENT_ID');
+        $clientSecret = config('filesystems.disks.google.clientSecret') ?? env('GOOGLE_DRIVE_CLIENT_SECRET');
+        $refreshToken = config('filesystems.disks.google.refreshToken') ?? env('GOOGLE_DRIVE_REFRESH_TOKEN');
+
+        $this->client->setClientId($clientId);
+        $this->client->setClientSecret($clientSecret);
+
+        $token = $this->client->fetchAccessTokenWithRefreshToken($refreshToken);
 
         if (isset($token['error'])) {
             throw new \Exception("Gagal Otentikasi Google Drive: " . ($token['error_description'] ?? $token['error']));
@@ -138,12 +144,12 @@ class GoogleDriveService
 
     private function makePublicIfConfigured(string $fileId): void
     {
-        if (!filter_var(config('services.google_drive.public_links', false), FILTER_VALIDATE_BOOL)) {
-            return;
+        // Memastikan izin file otomatis dibuat publik agar bisa tampil di publik
+        try {
+            $permission = new Drive\Permission(['type' => 'anyone', 'role' => 'reader']);
+            $this->driveService->permissions->create($fileId, $permission);
+        } catch (\Exception $e) {
+            // Abaikan error jika izin sudah ada
         }
-
-        $permission = new Drive\Permission(['type' => 'anyone', 'role' => 'reader']);
-        $this->driveService->permissions->create($fileId, $permission);
     }
-
 }

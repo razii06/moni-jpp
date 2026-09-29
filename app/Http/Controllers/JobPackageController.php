@@ -67,16 +67,16 @@ class JobPackageController extends Controller
         // Query khusus untuk paket pekerjaan aktif (tidak dibatalkan atau status NULL)
         $activeQuery = (clone $baseQuery)->where(function ($q) {
             $q->where('status', '!=', 'batal')
-              ->orWhereNull('status');
+                ->orWhereNull('status');
         });
 
         // 1. Belum Mulai (Progres <= 0, NULL, atau string kosong)
         $notStartedQuery = (clone $activeQuery)->where(function ($q) {
             $q->whereRaw("CAST(REPLACE(NULLIF(hasil_progres, ''), ',', '.') AS DECIMAL(10,2)) <= 0")
-              ->orWhereNull('hasil_progres')
-              ->orWhere('hasil_progres', '')
-              ->orWhere('hasil_progres', '0'); // Penanganan string kosong di Database
-        });
+                ->orWhereNull('hasil_progres')
+                ->orWhere('hasil_progres', '')
+                ->orWhere('hasil_progres', '0'); // Penanganan string kosong di Database
+            });
         $applySort($notStartedQuery);
         $notStartedJobs = $notStartedQuery->paginate(10, ['*'], 'page_not_started')->withQueryString();
 
@@ -208,13 +208,62 @@ class JobPackageController extends Controller
         return view('admin.job_packages.edit', compact('jobPackage'));
     }
 
-    public function update(UpdateJobPackageRequest $request, JobPackage $jobPackage)
+    public function update(Request $request, JobPackage $jobPackage)
     {
         // Cek apakah user punya hak mengedit data
         Gate::authorize('edit-data');
 
-        DB::transaction(function () use ($request, $jobPackage) {
-            $validated = $request->validated();
+        // Helper untuk memeriksa apakah input dokumen berupa array atau berkas tunggal
+        $docRule = fn($field) => $request->hasFile($field) && is_array($request->file($field))
+            ? ['nullable', 'array']
+            : ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'];
+
+        // Validasi data input
+        $validated = $request->validate([
+            'job_package'               => ['nullable'],
+            'no_service_notifikasi'     => ['nullable', 'string'],
+            'no_service_order'          => ['nullable', 'string'],
+            'no_po'                     => ['nullable', 'string'],
+            'owner_estimate'            => ['nullable', 'numeric'],
+            'final_harga'               => ['nullable', 'numeric'],
+            'hasil_progres'             => ['nullable', 'string'],
+            'progress_pekerjaan'        => ['nullable', 'numeric'],
+            'rab_lp002'                 => ['nullable', 'numeric'],
+            'pbj_lp002'                 => ['nullable', 'numeric'],
+            'proses_adm_keuangan'       => ['nullable', 'numeric'],
+            'tanggal_mulai_pekerjaan'   => ['nullable', 'date'],
+            'tanggal_selesai_pekerjaan' => ['nullable', 'date'],
+            'latest_activity'           => ['nullable', 'string'],
+            'status'                    => ['nullable', 'string'],
+            'items'                     => ['nullable', 'array'],
+            'pos'                       => ['nullable', 'array'],
+            'po_items'                  => ['nullable', 'array'],
+            'surat_bak_docs'            => ['nullable', 'array'],
+            'permintaan_dari'           => ['nullable', 'array'],
+
+            // Validasi Dokumen Opsional (Diawali dengan nullable dan file)
+            'doc_rab'                   => $docRule('doc_rab'),
+            'doc_rab.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'doc_bak'                   => $docRule('doc_bak'),
+            'doc_bak.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'doc_surat_permintaan'      => $docRule('doc_surat_permintaan'),
+            'doc_surat_permintaan.*'    => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'doc_surat_izin_prinsip'    => $docRule('doc_surat_izin_prinsip'),
+            'doc_surat_izin_prinsip.*'  => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'doc_tor'                   => $docRule('doc_tor'),
+            'doc_tor.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'doc_bast'                  => $docRule('doc_bast'),
+            'doc_bast.*'                => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+
+            'surat_permintaan'          => $docRule('surat_permintaan'),
+            'surat_permintaan.*'        => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'surat_izin_prinsip'        => $docRule('surat_izin_prinsip'),
+            'surat_izin_prinsip.*'      => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'bak_negosiasi'             => $docRule('bak_negosiasi'),
+            'bak_negosiasi.*'           => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+        ]);
+
+        DB::transaction(function () use ($request, $jobPackage, $validated) {
             $poList = $request->input('pos', $request->input('po_items', []));
             $data = array_diff_key($validated, array_flip($this->docFields));
             

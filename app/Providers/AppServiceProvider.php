@@ -53,9 +53,9 @@ class AppServiceProvider extends ServiceProvider
             return $user->role === 'admin';
         });
 
-        // 2. Akses Tambah (Admin & PIC JPP)
+        // 2. Akses Tambah (Admin, PIC JPP, Staff, & Supervisi)
         Gate::define('create-data', function ($user) {
-            return in_array($user->role, ['admin', 'pic_jpp', 'staff']);
+            return in_array($user->role, ['admin', 'pic_jpp', 'staff', 'super_vc']);
         });
 
         // 3. Akses Edit (Semua bisa)

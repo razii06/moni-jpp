@@ -21,6 +21,9 @@ class DokumentasiController extends Controller
 
     public function store(Request $request)
     {
+        // 1. Proteksi otorisasi backend untuk tambah data
+        Gate::authorize('create-data');
+
         $validated = $request->validate([
             'judul' => ['required', 'string', 'max:255'],
             'kategori' => ['required', Rule::in(['Foto Kegiatan', 'Dokumen PDF', 'Tautan Video'])],
@@ -59,24 +62,33 @@ class DokumentasiController extends Controller
                 $realPath = $file->getRealPath() ?: $file->getPathname();
 
                 if (config('filesystems.default') === 'google') {
-                    $drive = new GoogleDriveService();
-                    $folderBerandaId = config('filesystems.disks.google.folder_beranda');
-                    
-                    $uploadedFile = $drive->uploadFile(
-                        $filename,
-                        $file->getClientMimeType(),
-                        $realPath,
-                        $file->getSize(),
-                        $folderBerandaId
-                    );
+                    // 2. Bungkus proses upload dengan try-catch agar aman dari crash
+                    try {
+                        $drive = new GoogleDriveService();
+                        $folderBerandaId = config('filesystems.disks.google.folder_beranda');
+                        
+                        $uploadedFile = $drive->uploadFile(
+                            $filename,
+                            $file->getClientMimeType(),
+                            $realPath,
+                            $file->getSize(),
+                            $folderBerandaId
+                        );
 
-                    $fileUrl = $uploadedFile->webViewLink ?? null;
+                        if (!$uploadedFile || empty($uploadedFile->webViewLink)) {
+                            return back()->withErrors(['file_upload' => 'Gagal mengunggah file ke Google Drive.'])->withInput();
+                        }
+
+                        $fileUrl = $uploadedFile->webViewLink;
+                    } catch (\Exception $e) {
+                        return back()->withErrors(['file_upload' => 'Gagal mengunggah: ' . $e->getMessage()])->withInput();
+                    }
                 } else {
                     $path = $file->storeAs('dokumentasi', $filename, 'public');
                     $fileUrl = asset('storage/' . $path);
                 }
 
-                $data['file_path'] = $fileUrl ?: $filename; 
+                $data['file_path'] = $fileUrl; 
                 $data['ukuran_file'] = $this->formatFileSize($file->getSize());
             } else {
                 return back()->withErrors(['file_upload' => 'File tidak ditemukan atau tidak valid.'])->withInput();
@@ -103,8 +115,12 @@ class DokumentasiController extends Controller
                 $fileId = $matches[0] ?? null;
 
                 if ($fileId) {
-                    $drive = new GoogleDriveService();
-                    $drive->deleteFile($fileId); // Hapus permanen dari Drive
+                    try {
+                        $drive = new GoogleDriveService();
+                        $drive->deleteFile($fileId); // Hapus permanen dari Drive
+                    } catch (\Exception $e) {
+                        // Tetap lanjutkan hapus record database jika file drive tidak ditemukan
+                    }
                 }
             } else {
                 // Hapus dari disk lokal (public) jika file disimpan di server lokal
