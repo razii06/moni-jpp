@@ -12,6 +12,7 @@ class JobPackage extends Model
 {
     use HasFactory;
 
+    // Field 'periode' sudah terdaftar dengan benar di sini
     protected $fillable = [
         'items', 'job_package', 'visibility', 'periode', 'no_surat_bak_doc',
         'tanggal_surat_masuk', 'no_service_notifikasi', 'no_service_order',
@@ -24,7 +25,7 @@ class JobPackage extends Model
     ];
 
     protected $casts = [
-        'periode'                   => 'array',
+        // 'periode' => 'array', // <-- BARIS INI DIHAPUS AGAR PERIODE DISIMPAN SEBAGAI STRING
         'items'                     => 'array',
         'tanggal_surat_masuk'       => 'date',
         'tanggal_mulai_pekerjaan'   => 'date',

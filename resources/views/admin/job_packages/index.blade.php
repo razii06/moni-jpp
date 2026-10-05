@@ -432,7 +432,7 @@
                                                 </form>
                                             @endif
 
-                                            <!-- Tombol Hapus dengan Gate 'delete-data' menggantikan pengondisian manual sebelumnya -->
+                                            <!-- Tombol Hapus dengan Gate 'delete-data' -->
                                             @can('delete-data')
                                                 <form method="POST" action="{{ route('admin.job-packages.destroy', $jp) }}" onsubmit="return confirm('Hapus Job Package ini secara permanen?')" class="inline">
                                                     @csrf @method('DELETE')

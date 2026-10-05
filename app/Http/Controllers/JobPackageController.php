@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreJobPackageRequest;
-use App\Http\Requests\UpdateJobPackageRequest;
 use App\Models\JobPackage;
 use App\Models\ActivityLog;
 use App\Services\GoogleDriveService;
 use App\Services\JobPackageExportService;
+use App\Http\Requests\UpdateJobPackageRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -26,10 +25,8 @@ class JobPackageController extends Controller
         $search = $request->get('search');
         $sort = $request->get('sort', 'latest');
 
-        // Base query dengan Eager Loading agar query tetap optimal
         $baseQuery = JobPackage::with(['creator', 'pos', 'suratBakDocs', 'permintaanDaris']);
 
-        // Filter Pencarian (Gabungan seluruh kolom & tabel relasi)
         if ($request->filled('search')) {
             $baseQuery->where(function ($q) use ($search) {
                 $q->where('job_package', 'like', "%{$search}%")
@@ -51,7 +48,6 @@ class JobPackageController extends Controller
             });
         }
 
-        // Helper closure untuk pengurutan data
         $applySort = function ($query) use ($sort) {
             match ($sort) {
                 'oldest'        => $query->oldest(),
@@ -64,23 +60,22 @@ class JobPackageController extends Controller
             };
         };
 
-        // Query khusus untuk paket pekerjaan aktif (tidak dibatalkan atau status NULL)
         $activeQuery = (clone $baseQuery)->where(function ($q) {
             $q->where('status', '!=', 'batal')
                 ->orWhereNull('status');
         });
 
-        // 1. Belum Mulai (Progres <= 0, NULL, atau string kosong)
+        // 1. Belum Mulai
         $notStartedQuery = (clone $activeQuery)->where(function ($q) {
             $q->whereRaw("CAST(REPLACE(NULLIF(hasil_progres, ''), ',', '.') AS DECIMAL(10,2)) <= 0")
                 ->orWhereNull('hasil_progres')
                 ->orWhere('hasil_progres', '')
-                ->orWhere('hasil_progres', '0'); // Penanganan string kosong di Database
+                ->orWhere('hasil_progres', '0');
             });
         $applySort($notStartedQuery);
         $notStartedJobs = $notStartedQuery->paginate(10, ['*'], 'page_not_started')->withQueryString();
 
-        // 2. Sedang Berjalan (Progres 1% - 99%)
+        // 2. Sedang Berjalan
         $runningQuery = (clone $activeQuery)
             ->whereNotNull('hasil_progres')
             ->where('hasil_progres', '!=', '')
@@ -89,7 +84,7 @@ class JobPackageController extends Controller
         $applySort($runningQuery);
         $runningJobs = $runningQuery->paginate(10, ['*'], 'page_running')->withQueryString();
 
-        // 3. Selesai (Progres >= 100%)
+        // 3. Selesai
         $doneQuery = (clone $activeQuery)
             ->whereNotNull('hasil_progres')
             ->where('hasil_progres', '!=', '')
@@ -97,7 +92,7 @@ class JobPackageController extends Controller
         $applySort($doneQuery);
         $doneJobs = $doneQuery->paginate(10, ['*'], 'page_done')->withQueryString();
 
-        // 4. Dibatalkan (Khusus status 'batal')
+        // 4. Dibatalkan
         $cancelledQuery = (clone $baseQuery)->where('status', 'batal');
         $applySort($cancelledQuery);
         $cancelledJobs = $cancelledQuery->paginate(10, ['*'], 'page_cancelled')->withQueryString();
@@ -121,26 +116,91 @@ class JobPackageController extends Controller
 
     public function create()
     {
-        // Cek apakah user punya hak menambah data
         Gate::authorize('create-data');
-
         return view('admin.job_packages.create');
     }
 
-    public function store(StoreJobPackageRequest $request)
+    public function store(Request $request)
     {
-        // Cek apakah user punya hak menambah data
         Gate::authorize('create-data');
+
+        // PERBAIKAN: Gunakan fungsi sanitasi angka yang aman terhadap format ribuan (titik/koma)
+        if ($request->filled('owner_estimate')) {
+            $request->merge([
+                'owner_estimate' => $this->sanitizeNumber($request->owner_estimate)
+            ]);
+        }
+        if ($request->filled('final_harga')) {
+            $request->merge([
+                'final_harga' => $this->sanitizeNumber($request->final_harga)
+            ]);
+        }
+        if ($request->has('pos') && is_array($request->pos)) {
+            $sanitizedPos = collect($request->pos)->map(function ($item) {
+                if (isset($item['price'])) {
+                    $item['price'] = $this->sanitizeNumber($item['price']);
+                } elseif (isset($item['harga'])) {
+                    $item['price'] = $this->sanitizeNumber($item['harga']);
+                }
+                return $item;
+            })->toArray();
+
+            $request->merge(['pos' => $sanitizedPos]);
+        }
+
+        $docRule = fn($field) => $request->hasFile($field) && is_array($request->file($field))
+            ? ['nullable', 'array']
+            : ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'];
+
+        $validated = $request->validate([
+            'job_package'               => ['nullable'],
+            'no_service_notifikasi'     => ['nullable', 'string'],
+            'no_service_order'          => ['nullable', 'string'],
+            'no_po'                     => ['nullable', 'string'],
+            
+            // PERBAIKAN: Naikkan max value ke 999 Miliar
+            'owner_estimate'            => ['nullable', 'numeric', 'min:0', 'max:999999999999.99'],
+            'final_harga'               => ['nullable', 'numeric', 'min:0', 'max:999999999999.99'],
+            
+            'hasil_progres'             => ['nullable', 'string'],
+            'progress_pekerjaan'        => ['nullable', 'numeric'],
+            'rab_lp002'                 => ['nullable', 'numeric'],
+            'pbj_lp002'                 => ['nullable', 'numeric'],
+            'proses_adm_keuangan'       => ['nullable', 'numeric'],
+            'tanggal_mulai_pekerjaan'   => ['nullable', 'date'],
+            'tanggal_selesai_pekerjaan' => ['nullable', 'date'],
+            'latest_activity'           => ['nullable', 'string'],
+            'status'                    => ['nullable', 'string'],
+            'items'                     => ['nullable', 'array'],
+            'pos'                       => ['nullable', 'array'],
+            'po_items'                  => ['nullable', 'array'],
+            'surat_bak_docs'            => ['nullable', 'array'],
+            'permintaan_dari'           => ['nullable', 'array'],
+            'periode'                   => ['nullable', 'string', 'max:255'],
+
+            'doc_rab'                   => $docRule('doc_rab'),
+            'doc_rab.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'doc_bak'                   => $docRule('doc_bak'),
+            'doc_bak.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'doc_surat_permintaan'      => $docRule('doc_surat_permintaan'),
+            'doc_surat_permintaan.*'    => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'doc_surat_izin_prinsip'    => $docRule('doc_surat_izin_prinsip'),
+            'doc_surat_izin_prinsip.*'  => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'doc_tor'                   => $docRule('doc_tor'),
+            'doc_tor.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+            'doc_bast'                  => $docRule('doc_bast'),
+            'doc_bast.*'                => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
+        ]);
 
         $jobPackage = null;
 
-        DB::transaction(function () use ($request, &$jobPackage) {
-            $validated = $request->validated();
+        DB::transaction(function () use ($request, &$jobPackage, $validated) {
             $validated['created_by'] = auth()->id();
 
             $poList = $validated['pos'] ?? [];
             $data = array_diff_key($validated, array_flip($this->docFields));
-            unset($data['pos'], $data['surat_bak_docs'], $data['permintaan_dari'], $data['periode']);
+            
+            unset($data['pos'], $data['surat_bak_docs'], $data['permintaan_dari']);
 
             if ($request->has('items')) {
                 $data['items'] = array_values($request->input('items', []));
@@ -201,75 +261,28 @@ class JobPackageController extends Controller
 
     public function edit(JobPackage $jobPackage)
     {
-        // Cek apakah user punya hak mengedit data
         Gate::authorize('edit-data');
 
         $jobPackage->load(['pos', 'suratBakDocs', 'permintaanDaris']);
         return view('admin.job_packages.edit', compact('jobPackage'));
     }
 
-    public function update(Request $request, JobPackage $jobPackage)
+    // PERBAIKAN: Gunakan UpdateJobPackageRequest agar validasi & sanitasi terpusat
+    public function update(UpdateJobPackageRequest $request, JobPackage $jobPackage)
     {
-        // Cek apakah user punya hak mengedit data
         Gate::authorize('edit-data');
 
-        // Helper untuk memeriksa apakah input dokumen berupa array atau berkas tunggal
-        $docRule = fn($field) => $request->hasFile($field) && is_array($request->file($field))
-            ? ['nullable', 'array']
-            : ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'];
-
-        // Validasi data input
-        $validated = $request->validate([
-            'job_package'               => ['nullable'],
-            'no_service_notifikasi'     => ['nullable', 'string'],
-            'no_service_order'          => ['nullable', 'string'],
-            'no_po'                     => ['nullable', 'string'],
-            'owner_estimate'            => ['nullable', 'numeric'],
-            'final_harga'               => ['nullable', 'numeric'],
-            'hasil_progres'             => ['nullable', 'string'],
-            'progress_pekerjaan'        => ['nullable', 'numeric'],
-            'rab_lp002'                 => ['nullable', 'numeric'],
-            'pbj_lp002'                 => ['nullable', 'numeric'],
-            'proses_adm_keuangan'       => ['nullable', 'numeric'],
-            'tanggal_mulai_pekerjaan'   => ['nullable', 'date'],
-            'tanggal_selesai_pekerjaan' => ['nullable', 'date'],
-            'latest_activity'           => ['nullable', 'string'],
-            'status'                    => ['nullable', 'string'],
-            'items'                     => ['nullable', 'array'],
-            'pos'                       => ['nullable', 'array'],
-            'po_items'                  => ['nullable', 'array'],
-            'surat_bak_docs'            => ['nullable', 'array'],
-            'permintaan_dari'           => ['nullable', 'array'],
-
-            // Validasi Dokumen Opsional (Diawali dengan nullable dan file)
-            'doc_rab'                   => $docRule('doc_rab'),
-            'doc_rab.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'doc_bak'                   => $docRule('doc_bak'),
-            'doc_bak.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'doc_surat_permintaan'      => $docRule('doc_surat_permintaan'),
-            'doc_surat_permintaan.*'    => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'doc_surat_izin_prinsip'    => $docRule('doc_surat_izin_prinsip'),
-            'doc_surat_izin_prinsip.*'  => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'doc_tor'                   => $docRule('doc_tor'),
-            'doc_tor.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'doc_bast'                  => $docRule('doc_bast'),
-            'doc_bast.*'                => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-
-            'surat_permintaan'          => $docRule('surat_permintaan'),
-            'surat_permintaan.*'        => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'surat_izin_prinsip'        => $docRule('surat_izin_prinsip'),
-            'surat_izin_prinsip.*'      => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'bak_negosiasi'             => $docRule('bak_negosiasi'),
-            'bak_negosiasi.*'           => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-        ]);
+        // Ambil data yang sudah disanitasi & divalidasi oleh FormRequest
+        $validated = $request->validated();
 
         DB::transaction(function () use ($request, $jobPackage, $validated) {
-            $poList = $request->input('pos', $request->input('po_items', []));
+            $poList = $validated['pos'] ?? $request->input('pos', $request->input('po_items', []));
             $data = array_diff_key($validated, array_flip($this->docFields));
             
-            unset($data['pos'], $data['po_items'], $data['surat_bak_docs'], $data['permintaan_dari'], $data['periode']);
+            // Pertahankan 'periode' di $data, hanya hapus array relasi
+            unset($data['pos'], $data['po_items'], $data['surat_bak_docs'], $data['permintaan_dari']);
 
-            $jobPackageInput = $request->input('job_package');
+            $jobPackageInput = $validated['job_package'] ?? $request->input('job_package');
             if (is_array($jobPackageInput)) {
                 $data['job_package'] = implode(', ', array_filter($jobPackageInput));
             } else {
@@ -281,12 +294,12 @@ class JobPackageController extends Controller
             }
 
             $suratList = array_values(array_filter(
-                (array) $request->input('surat_bak_docs', []),
+                (array) ($validated['surat_bak_docs'] ?? $request->input('surat_bak_docs', [])),
                 fn ($v) => trim((string) $v) !== ''
             ));
 
             $permintaanList = array_values(array_filter(
-                (array) $request->input('permintaan_dari', []),
+                (array) ($validated['permintaan_dari'] ?? $request->input('permintaan_dari', [])),
                 fn ($v) => trim((string) $v) !== ''
             ));
 
@@ -341,7 +354,6 @@ class JobPackageController extends Controller
 
     public function destroy(JobPackage $jobPackage)
     {
-        // Cek apakah user punya hak menghapus data
         Gate::authorize('delete-data');
 
         if (!auth()->user()->isAdmin()) {
@@ -383,7 +395,6 @@ class JobPackageController extends Controller
 
     public function cancel(JobPackage $jobPackage)
     {
-        // Cek apakah user punya hak mengedit data
         Gate::authorize('edit-data');
 
         $jobPackage->update(['status' => 'batal']);
@@ -394,7 +405,6 @@ class JobPackageController extends Controller
 
     public function reactivate(JobPackage $jobPackage)
     {
-        // Cek apakah user punya hak mengedit data
         Gate::authorize('edit-data');
 
         $jobPackage->update(['status' => 'aktif']);
@@ -405,7 +415,6 @@ class JobPackageController extends Controller
 
     public function deleteDocument(JobPackage $jobPackage, string $field, Request $request)
     {
-        // Cek apakah user punya hak mengedit data
         Gate::authorize('edit-data');
 
         if (!in_array($field, $this->docFields) || empty($jobPackage->$field)) {
@@ -643,5 +652,53 @@ class JobPackageController extends Controller
         return empty($changes)
             ? 'Data diperbarui (tidak ada perubahan nilai signifikan).'
             : implode('; ', $changes);
+    }
+
+    private function sanitizeDecimal(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        $clean = str_replace(',', '.', trim((string) $value));
+        $clean = preg_replace('/[^\d.]/', '', $clean);
+
+        return is_numeric($clean) ? (float) $clean : null;
+    }
+
+    private function sanitizeNumber(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        $clean = preg_replace('/[^\d.,]/', '', (string) $value);
+
+        if (strpos($clean, '.') !== false && strpos($clean, ',') !== false) {
+            if (strrpos($clean, ',') > strrpos($clean, '.')) {
+                $clean = str_replace('.', '', $clean);
+                $clean = str_replace(',', '.', $clean);
+            } else {
+                $clean = str_replace(',', '', $clean);
+            }
+        }
+        elseif (strpos($clean, '.') !== false) {
+            if (substr_count($clean, '.') > 1 || preg_match('/\.\d{3}$/', $clean)) {
+                $clean = str_replace('.', '', $clean);
+            }
+        }
+        elseif (strpos($clean, ',') !== false) {
+            $clean = str_replace(',', '.', $clean);
+        }
+
+        return is_numeric($clean) ? (float) $clean : null;
     }
 }

@@ -26,8 +26,8 @@
         </div>
     </div>
 
-    <!-- Main Form Submit dengan multipart/form-data -->
-    <form method="POST" action="{{ route('admin.job-packages.update', $jobPackage) }}" enctype="multipart/form-data" class="space-y-6 max-w-5xl">
+    <!-- Main Form Submit dengan ID form-edit dan multipart/form-data -->
+    <form id="form-edit" method="POST" action="{{ route('admin.job-packages.update', $jobPackage) }}" enctype="multipart/form-data" class="space-y-6 max-w-5xl">
         @csrf
         @method('PUT')
 
@@ -281,22 +281,26 @@
                     @enderror
                 </div>
 
+                <!-- PERBAIKAN 1: Mengubah type="number" menjadi type="text" agar tidak terhalang validasi HTML5 saat menggunakan format ribuan -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">
                         Owner Estimate (OE) <span class="text-rose-500">*</span>
                     </label>
-                    <input type="number" step="0.01" min="0" name="owner_estimate" value="{{ old('owner_estimate', $jobPackage->owner_estimate ?? '') }}" required
+                    <input type="text" name="owner_estimate" value="{{ old('owner_estimate', $jobPackage->owner_estimate ?? '') }}" required
+                        placeholder="Contoh: 687.350.000"
                         class="w-full px-4 py-2.5 bg-slate-50 border @error('owner_estimate') border-rose-400 focus:ring-rose-500 @else border-slate-200 focus:ring-[#0f2b5c] @enderror rounded-xl text-xs font-medium focus:ring-2 focus:bg-white transition-all">
                     @error('owner_estimate')
                         <span class="text-[11px] text-rose-500 mt-1 block font-medium">{{ $message }}</span>
                     @enderror
                 </div>
 
+                <!-- PERBAIKAN 1: Mengubah type="number" menjadi type="text" -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">
                         Final Harga <span class="text-[10px] font-normal text-slate-400">(Otomatis kalkulasi dari PO)</span>
                     </label>
-                    <input type="number" step="0.01" min="0" id="final_harga" name="final_harga" value="{{ old('final_harga', $jobPackage->final_harga ?? '') }}"
+                    <input type="text" id="final_harga" name="final_harga" value="{{ old('final_harga', $jobPackage->final_harga ?? '') }}"
+                        placeholder="0"
                         class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#0f2b5c] transition-all">
                 </div>
             </div>
@@ -356,9 +360,10 @@
                                 placeholder="Rincian / nama barang/jasa"
                                 class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#0f2b5c]">
                         </div>
+                        <!-- PERBAIKAN 1: Mengubah type="number" ke type="text" untuk harga PO -->
                         <div class="sm:col-span-3">
                             <label class="block text-[11px] font-bold text-slate-600 mb-1">Harga (Rp)</label>
-                            <input type="number" step="0.01" min="0" name="pos[{{ $index }}][price]"
+                            <input type="text" name="pos[{{ $index }}][price]"
                                 value="{{ $price }}" placeholder="0"
                                 class="po-price-input w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#0f2b5c]">
                         </div>
@@ -420,7 +425,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">RAB LP-001/002 (%)</label>
-                    <input type="number" step="0.01" min="0" max="100" name="rab_lp002" value="{{ old('rab_lp002', $jobPackage->rab_lp002) }}"
+                    <input type="text" name="rab_lp002" value="{{ old('rab_lp002', $jobPackage->rab_lp002) }}"
                         class="progress-input w-full px-4 py-2.5 bg-slate-50 border @error('rab_lp002') border-rose-400 focus:ring-rose-500 @else border-slate-200 focus:ring-[#0f2b5c] @enderror rounded-xl text-xs font-medium focus:ring-2 focus:bg-white transition-all"
                         placeholder="0.00">
                     @error('rab_lp002')
@@ -430,7 +435,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">PB/J LP-001/002 (%)</label>
-                    <input type="number" step="0.01" min="0" max="100" name="pbj_lp002" value="{{ old('pbj_lp002', $jobPackage->pbj_lp002) }}"
+                    <input type="text" name="pbj_lp002" value="{{ old('pbj_lp002', $jobPackage->pbj_lp002) }}"
                         class="progress-input w-full px-4 py-2.5 bg-slate-50 border @error('pbj_lp002') border-rose-400 focus:ring-rose-500 @else border-slate-200 focus:ring-[#0f2b5c] @enderror rounded-xl text-xs font-medium focus:ring-2 focus:bg-white transition-all"
                         placeholder="0.00">
                     @error('pbj_lp002')
@@ -440,7 +445,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Progress Pekerjaan (%)</label>
-                    <input type="number" step="0.01" min="0" max="100" name="progress_pekerjaan" value="{{ old('progress_pekerjaan', $jobPackage->progress_pekerjaan) }}"
+                    <input type="text" name="progress_pekerjaan" value="{{ old('progress_pekerjaan', $jobPackage->progress_pekerjaan) }}"
                         class="progress-input w-full px-4 py-2.5 bg-slate-50 border @error('progress_pekerjaan') border-rose-400 focus:ring-rose-500 @else border-slate-200 focus:ring-[#0f2b5c] @enderror rounded-xl text-xs font-medium focus:ring-2 focus:bg-white transition-all"
                         placeholder="0.00">
                     @error('progress_pekerjaan')
@@ -450,7 +455,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">ADM Keuangan (%)</label>
-                    <input type="number" step="0.01" min="0" max="100" name="proses_adm_keuangan" value="{{ old('proses_adm_keuangan', $jobPackage->proses_adm_keuangan) }}"
+                    <input type="text" name="proses_adm_keuangan" value="{{ old('proses_adm_keuangan', $jobPackage->proses_adm_keuangan) }}"
                         class="progress-input w-full px-4 py-2.5 bg-slate-50 border @error('proses_adm_keuangan') border-rose-400 focus:ring-rose-500 @else border-slate-200 focus:ring-[#0f2b5c] @enderror rounded-xl text-xs font-medium focus:ring-2 focus:bg-white transition-all"
                         placeholder="0.00">
                     @error('proses_adm_keuangan')
@@ -553,10 +558,10 @@
             </div>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- PERBAIKAN 2 & 3: Tombol Submit dengan type="submit" dan dihubungkan secara eksplisit menggunakan atribut form="form-edit" -->
         <div class="flex items-center gap-3">
-            <button type="submit"
-                class="bg-amber-500 hover:bg-amber-600 text-slate-900 px-6 py-3 rounded-xl font-bold text-xs transition-all shadow-md">
+            <button type="submit" form="form-edit"
+                class="bg-amber-500 hover:bg-amber-600 text-slate-900 px-6 py-3 rounded-xl font-bold text-xs transition-all shadow-md cursor-pointer">
                 Simpan Perubahan
             </button>
             <a href="{{ route('admin.job-packages.show', $jobPackage) }}"
@@ -580,9 +585,27 @@
         @endif
     @endforeach
 
-    <!-- Script JavaScript Identik dengan Create -->
+    <!-- Script JavaScript -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Fungsi pembantu untuk mengubah input berformat teks/titik/koma menjadi angka bertipe float
+        function parseFormattedNumber(val) {
+            if (!val) return 0;
+            let str = val.toString().trim();
+            // Jika terdapat titik pemisah ribuan (contoh: 687.350.000 atau 10.000,00)
+            if (str.includes('.') && str.includes(',')) {
+                str = str.replace(/\./g, '').replace(',', '.');
+            } else if (str.includes('.')) {
+                const parts = str.split('.');
+                if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+                    str = str.replace(/\./g, '');
+                }
+            } else if (str.includes(',')) {
+                str = str.replace(',', '.');
+            }
+            return parseFloat(str) || 0;
+        }
+
         // 1. Kalkulasi Total Progres
         const rabInput = document.querySelector('input[name="rab_lp002"]');
         const pbjInput = document.querySelector('input[name="pbj_lp002"]');
@@ -591,10 +614,10 @@
         const totalDisplay = document.getElementById('total-progress-display');
 
         function calculateTotal() {
-            const rab = parseFloat(rabInput?.value.toString().replace(',', '.')) || 0;
-            const pbj = parseFloat(pbjInput?.value.toString().replace(',', '.')) || 0;
-            const progress = parseFloat(progressInput?.value.toString().replace(',', '.')) || 0;
-            const adm = parseFloat(admInput?.value.toString().replace(',', '.')) || 0;
+            const rab = parseFormattedNumber(rabInput?.value);
+            const pbj = parseFormattedNumber(pbjInput?.value);
+            const progress = parseFormattedNumber(progressInput?.value);
+            const adm = parseFormattedNumber(admInput?.value);
 
             const total = (rab * 0.05) + (pbj * 0.05) + (progress * 0.85) + (adm * 0.05);
             let formattedTotal = Number.isInteger(total) ? total : total.toFixed(2);
@@ -625,7 +648,7 @@
         function calculateFinalHarga() {
             let total = 0;
             document.querySelectorAll('.po-price-input').forEach(input => {
-                total += parseFloat(input.value) || 0;
+                total += parseFormattedNumber(input.value);
             });
             if (finalHargaInput) finalHargaInput.value = total;
         }
@@ -678,7 +701,7 @@
                         </div>
                         <div class="sm:col-span-3">
                             <label class="block text-[11px] font-bold text-slate-600 mb-1">Harga (Rp)</label>
-                            <input type="number" step="0.01" min="0" name="pos[${index}][price]" placeholder="0"
+                            <input type="text" name="pos[${index}][price]" placeholder="0"
                                 class="po-price-input w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#0f2b5c]">
                         </div>
                         <div class="sm:col-span-1 flex justify-end">

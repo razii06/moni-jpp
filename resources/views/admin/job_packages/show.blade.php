@@ -223,7 +223,7 @@
             <!-- Kiri: Grid Kartu Informasi Utama -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                <!-- 1. No. Dokumen (Diubah judul & bullet format ke -) -->
+                <!-- 1. No. Dokumen -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between space-y-3">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-100 shrink-0">
@@ -248,7 +248,22 @@
                     </div>
                 </div>
 
-                <!-- 2. Tanggal Surat Masuk -->
+                <!-- 2. Periode -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between space-y-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100 shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Periode</span>
+                    </div>
+                        <div class="text-xs font-black text-slate-800 pl-0.5">
+                            {{ $jobPackage->periode ?? '-' }}
+                        </div>
+                </div>
+
+                <!-- 3. Tanggal Surat Masuk -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between space-y-3">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 shrink-0">
@@ -263,8 +278,8 @@
                     </div>
                 </div>
 
-                <!-- 3. Permintaan Dari / Departemen -->
-                <div class="sm:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between space-y-3">
+                <!-- 4. Permintaan Dari / Departemen -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between space-y-3">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -290,7 +305,7 @@
                     </div>
                 </div>
 
-                <!-- 4. No. Service Order (SO) -->
+                <!-- 5. No. Service Order (SO) -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between space-y-3">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0">
@@ -305,7 +320,7 @@
                     </div>
                 </div>
 
-                <!-- 5. No. Service Notifikasi -->
+                <!-- 6. No. Service Notifikasi -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between space-y-3">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100 shrink-0">
@@ -320,7 +335,7 @@
                     </div>
                 </div>
 
-                <!-- 6. Owner Estimate (OE) -->
+                <!-- 7. Owner Estimate (OE) -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between space-y-3">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200 shrink-0">
@@ -335,7 +350,7 @@
                     </div>
                 </div>
 
-                <!-- 7. Final Harga -->
+                <!-- 8. Final Harga -->
                 <div class="bg-emerald-50/60 rounded-2xl border border-emerald-200/80 shadow-sm p-4 flex flex-col justify-between space-y-3">
                     <div class="flex items-center gap-2.5">
                         <div class="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-sm shrink-0">
