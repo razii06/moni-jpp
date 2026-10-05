@@ -12,7 +12,6 @@ class JobPackage extends Model
 {
     use HasFactory;
 
-    // Field 'periode' sudah terdaftar dengan benar di sini
     protected $fillable = [
         'items', 'job_package', 'visibility', 'periode', 'no_surat_bak_doc',
         'tanggal_surat_masuk', 'no_service_notifikasi', 'no_service_order',
@@ -25,7 +24,7 @@ class JobPackage extends Model
     ];
 
     protected $casts = [
-        // 'periode' => 'array', // <-- BARIS INI DIHAPUS AGAR PERIODE DISIMPAN SEBAGAI STRING
+        // 'periode' sengaja TIDAK di-cast: berupa teks biasa (mis. "Januari - Maret 2026")
         'items'                     => 'array',
         'tanggal_surat_masuk'       => 'date',
         'tanggal_mulai_pekerjaan'   => 'date',
@@ -38,7 +37,7 @@ class JobPackage extends Model
         'proses_adm_keuangan'       => 'float',
         'hasil_progres'             => 'float',
         'po_items'                  => 'array',
-        
+
         // Multiple Upload Array Casts
         'doc_rab'                   => 'array',
         'doc_bak'                   => 'array',
@@ -83,17 +82,17 @@ class JobPackage extends Model
     {
         if (is_string($value) && $value !== '') {
             $clean = preg_replace('/[^0-9,.]/', '', $value);
-            
+
             if (str_contains($clean, '.') && str_contains($clean, ',')) {
                 $clean = str_replace('.', '', $clean);
                 $clean = str_replace(',', '.', $clean);
             } elseif (str_contains($clean, '.') && !str_contains($clean, ',')) {
                 $clean = str_replace('.', '', $clean);
             }
-            
+
             return (float) $clean;
         }
-        
+
         return $value;
     }
 

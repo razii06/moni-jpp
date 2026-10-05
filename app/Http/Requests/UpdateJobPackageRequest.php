@@ -28,7 +28,7 @@ class UpdateJobPackageRequest extends FormRequest
         // 3. Normalisasi po_items ke pos jika pos kosong
         $pos = $this->input('pos', $this->input('po_items', []));
 
-        // 4. Sanitasi data angka & desimal sebelum validasi
+        // 4. Sanitasi data angka & desimal
         $this->merge([
             'job_package'         => $jobPackage,
             'periode'             => $periode,
@@ -56,26 +56,17 @@ class UpdateJobPackageRequest extends FormRequest
 
     public function rules(): array
     {
-        // Helper rule untuk dokumen opsional (bisa berupa berkas tunggal atau array)
-        $docRule = function ($field) {
-            return $this->hasFile($field) && is_array($this->file($field))
-                ? ['nullable', 'array']
-                : ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'];
-        };
-
         return [
-            'items'                   => ['sometimes', 'array'],
-            'items.*'                 => ['required', 'string'],
+            'items'                   => 'sometimes|array',
+            'items.*'                 => 'required|string',
             'job_package'             => ['required', 'string'],
             'periode'                 => ['nullable', 'string', 'max:255'],
-            'visibility'              => ['nullable', 'in:public,internal'],
+            'visibility'              => 'required|in:public,internal',
             'tanggal_surat_masuk'     => ['nullable', 'date'],
-            'no_service_notifikasi'   => ['nullable', 'string', 'max:255'],
-            'no_service_order'        => ['nullable', 'string', 'max:255'],
-
-            // PERBAIKAN: Dinaikkan batas maksimum nilainya hingga 999 Miliar
-            'owner_estimate'          => ['required', 'numeric', 'min:0', 'max:999999999999.99'],
-            'final_harga'             => ['nullable', 'numeric', 'min:0', 'max:999999999999.99'],
+            'no_service_notifikasi'   => ['required', 'string', 'max:255'],
+            'no_service_order'        => ['required', 'string', 'max:255'],
+            'owner_estimate'          => ['required', 'numeric', 'min:0'],
+            'final_harga'             => ['nullable', 'numeric', 'min:0'],
 
             'rab_lp002'               => ['nullable', 'numeric', 'between:0,100'],
             'pbj_lp002'               => ['nullable', 'numeric', 'between:0,100'],
@@ -90,13 +81,11 @@ class UpdateJobPackageRequest extends FormRequest
             'keterangan'              => ['nullable', 'string', 'max:2000'],
 
             'surat_bak_docs'          => [
-                'nullable', 'array', 'max:20',
+                'required', 'array', 'min:1', 'max:20',
                 function ($attribute, $value, $fail) {
-                    if (is_array($value) && !empty($value)) {
-                        $hasContent = collect($value)->contains(fn ($v) => trim((string) $v) !== '');
-                        if (!$hasContent) {
-                            $fail('Minimal harus ada satu No. Surat / BAK / Doc yang diisi.');
-                        }
+                    $hasContent = collect($value)->contains(fn ($v) => trim((string) $v) !== '');
+                    if (!$hasContent) {
+                        $fail('Minimal harus ada satu No. Surat / BAK / Doc yang diisi.');
                     }
                 },
             ],
@@ -108,20 +97,26 @@ class UpdateJobPackageRequest extends FormRequest
             'pos'                     => ['nullable', 'array', 'max:50'],
             'pos.*.no_po'             => ['nullable', 'string', 'max:255'],
             'pos.*.description'       => ['nullable', 'string', 'max:1000'],
-            'pos.*.price'             => ['nullable', 'numeric', 'min:0', 'max:999999999999.99'],
+            'pos.*.price'             => ['nullable', 'numeric', 'min:0'],
 
-            'doc_rab'                 => $docRule('doc_rab'),
-            'doc_rab.*'               => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
-            'doc_bak'                 => $docRule('doc_bak'),
-            'doc_bak.*'               => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
-            'doc_surat_permintaan'    => $docRule('doc_surat_permintaan'),
-            'doc_surat_permintaan.*'  => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
-            'doc_surat_izin_prinsip'  => $docRule('doc_surat_izin_prinsip'),
-            'doc_surat_izin_prinsip.*'=> ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
-            'doc_tor'                 => $docRule('doc_tor'),
-            'doc_tor.*'               => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
-            'doc_bast'                => $docRule('doc_bast'),
-            'doc_bast.*'              => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+            // Validasi Multiple Upload (Array Form) - form mengirim doc_xxx[]
+            'doc_rab'                  => ['nullable', 'array'],
+            'doc_rab.*'                => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+
+            'doc_bak'                  => ['nullable', 'array'],
+            'doc_bak.*'                => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+
+            'doc_surat_permintaan'     => ['nullable', 'array'],
+            'doc_surat_permintaan.*'   => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+
+            'doc_surat_izin_prinsip'   => ['nullable', 'array'],
+            'doc_surat_izin_prinsip.*' => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+
+            'doc_tor'                  => ['nullable', 'array'],
+            'doc_tor.*'                => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+
+            'doc_bast'                 => ['nullable', 'array'],
+            'doc_bast.*'               => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
         ];
     }
 
@@ -132,15 +127,12 @@ class UpdateJobPackageRequest extends FormRequest
             'no_service_notifikasi.required' => 'Nomor Service Notifikasi wajib diisi.',
             'no_service_order.required'      => 'Nomor Service Order wajib diisi.',
             'owner_estimate.required'        => 'Nilai Owner Estimate wajib diisi.',
-            'owner_estimate.max'             => 'Nilai Owner Estimate tidak boleh melebihi Rp 999 Miliar.',
-            'final_harga.max'                => 'Nilai Final Harga tidak boleh melebihi Rp 999 Miliar.',
             'tanggal_selesai_pekerjaan.after_or_equal' => 'Tanggal selesai pekerjaan tidak boleh lebih awal dari tanggal mulai.',
             'between'                        => 'Nilai persentase :attribute harus berada di antara 0% hingga 100%.',
             'max'                            => 'Ukuran berkas :attribute tidak boleh melebihi 50 MB.',
             'mimes'                          => 'Format berkas :attribute harus berupa PDF, Word, Excel, ZIP, atau RAR.',
             'pos.max'                        => 'Jumlah rincian PO tidak boleh lebih dari 50 item.',
             'pos.*.price.numeric'            => 'Harga pada rincian PO harus berupa angka.',
-            'pos.*.price.max'                => 'Harga pada rincian PO tidak boleh melebihi Rp 999 Miliar.',
             'surat_bak_docs.required'        => 'Minimal harus ada satu No. Surat / BAK / Doc.',
             'surat_bak_docs.max'             => 'Jumlah No. Surat / BAK / Doc tidak boleh lebih dari 20 item.',
             'permintaan_dari.max'            => 'Jumlah Permintaan Dari tidak boleh lebih dari 20 item.',
@@ -150,26 +142,26 @@ class UpdateJobPackageRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'job_package'             => 'Job Package',
-            'no_service_notifikasi'   => 'No. Service Notifikasi',
-            'no_service_order'        => 'No. Service Order',
-            'owner_estimate'          => 'Owner Estimate',
-            'final_harga'             => 'Final Harga',
-            'rab_lp002'               => 'RAB LP-001/002',
-            'pbj_lp002'               => 'PBJ LP-001/002',
-            'progress_pekerjaan'      => 'Progress Pekerjaan',
-            'proses_adm_keuangan'     => 'Proses ADM Keuangan',
-            'doc_rab'                 => 'Dokumen RAB',
-            'doc_bak'                 => 'Dokumen BAK',
-            'doc_surat_permintaan'    => 'Dokumen Surat Permintaan',
-            'doc_surat_izin_prinsip'  => 'Dokumen Surat Izin Prinsip',
-            'doc_tor'                 => 'Dokumen TOR',
-            'doc_bast'                => 'Dokumen BAST',
-            'pos.*.no_po'             => 'No. PO',
-            'pos.*.description'       => 'Deskripsi Item PO',
-            'pos.*.price'             => 'Harga PO',
-            'surat_bak_docs.*'        => 'No. Surat/BAK/Doc',
-            'permintaan_dari.*'       => 'Permintaan Dari',
+            'job_package'              => 'Job Package',
+            'no_service_notifikasi'    => 'No. Service Notifikasi',
+            'no_service_order'         => 'No. Service Order',
+            'owner_estimate'           => 'Owner Estimate',
+            'final_harga'              => 'Final Harga',
+            'rab_lp002'                => 'RAB LP-001/002',
+            'pbj_lp002'                => 'PBJ LP-001/002',
+            'progress_pekerjaan'       => 'Progress Pekerjaan',
+            'proses_adm_keuangan'      => 'Proses ADM Keuangan',
+            'doc_rab.*'                => 'Dokumen RAB',
+            'doc_bak.*'                => 'Dokumen BAK',
+            'doc_surat_permintaan.*'   => 'Dokumen Surat Permintaan',
+            'doc_surat_izin_prinsip.*' => 'Dokumen Surat Izin Prinsip',
+            'doc_tor.*'                => 'Dokumen TOR',
+            'doc_bast.*'               => 'Dokumen BAST',
+            'pos.*.no_po'              => 'No. PO',
+            'pos.*.description'        => 'Deskripsi Item PO',
+            'pos.*.price'              => 'Harga PO',
+            'surat_bak_docs.*'         => 'No. Surat/BAK/Doc',
+            'permintaan_dari.*'        => 'Permintaan Dari',
         ];
     }
 
@@ -208,13 +200,11 @@ class UpdateJobPackageRequest extends FormRequest
             } else {
                 $clean = str_replace(',', '', $clean);
             }
-        }
-        elseif (strpos($clean, '.') !== false) {
+        } elseif (strpos($clean, '.') !== false) {
             if (substr_count($clean, '.') > 1 || preg_match('/\.\d{3}$/', $clean)) {
                 $clean = str_replace('.', '', $clean);
             }
-        }
-        elseif (strpos($clean, ',') !== false) {
+        } elseif (strpos($clean, ',') !== false) {
             $clean = str_replace(',', '.', $clean);
         }
 

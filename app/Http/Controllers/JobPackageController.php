@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreJobPackageRequest;
+use App\Http\Requests\UpdateJobPackageRequest;
 use App\Models\JobPackage;
 use App\Models\ActivityLog;
 use App\Services\GoogleDriveService;
 use App\Services\JobPackageExportService;
-use App\Http\Requests\UpdateJobPackageRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -71,7 +72,7 @@ class JobPackageController extends Controller
                 ->orWhereNull('hasil_progres')
                 ->orWhere('hasil_progres', '')
                 ->orWhere('hasil_progres', '0');
-            });
+        });
         $applySort($notStartedQuery);
         $notStartedJobs = $notStartedQuery->paginate(10, ['*'], 'page_not_started')->withQueryString();
 
@@ -120,87 +121,25 @@ class JobPackageController extends Controller
         return view('admin.job_packages.create');
     }
 
-    public function store(Request $request)
+    // Validasi & sanitasi angka kini terpusat di StoreJobPackageRequest
+    public function store(StoreJobPackageRequest $request)
     {
         Gate::authorize('create-data');
 
-        // PERBAIKAN: Gunakan fungsi sanitasi angka yang aman terhadap format ribuan (titik/koma)
-        if ($request->filled('owner_estimate')) {
-            $request->merge([
-                'owner_estimate' => $this->sanitizeNumber($request->owner_estimate)
-            ]);
-        }
-        if ($request->filled('final_harga')) {
-            $request->merge([
-                'final_harga' => $this->sanitizeNumber($request->final_harga)
-            ]);
-        }
-        if ($request->has('pos') && is_array($request->pos)) {
-            $sanitizedPos = collect($request->pos)->map(function ($item) {
-                if (isset($item['price'])) {
-                    $item['price'] = $this->sanitizeNumber($item['price']);
-                } elseif (isset($item['harga'])) {
-                    $item['price'] = $this->sanitizeNumber($item['harga']);
-                }
-                return $item;
-            })->toArray();
-
-            $request->merge(['pos' => $sanitizedPos]);
-        }
-
-        $docRule = fn($field) => $request->hasFile($field) && is_array($request->file($field))
-            ? ['nullable', 'array']
-            : ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'];
-
-        $validated = $request->validate([
-            'job_package'               => ['nullable'],
-            'no_service_notifikasi'     => ['nullable', 'string'],
-            'no_service_order'          => ['nullable', 'string'],
-            'no_po'                     => ['nullable', 'string'],
-            
-            // PERBAIKAN: Naikkan max value ke 999 Miliar
-            'owner_estimate'            => ['nullable', 'numeric', 'min:0', 'max:999999999999.99'],
-            'final_harga'               => ['nullable', 'numeric', 'min:0', 'max:999999999999.99'],
-            
-            'hasil_progres'             => ['nullable', 'string'],
-            'progress_pekerjaan'        => ['nullable', 'numeric'],
-            'rab_lp002'                 => ['nullable', 'numeric'],
-            'pbj_lp002'                 => ['nullable', 'numeric'],
-            'proses_adm_keuangan'       => ['nullable', 'numeric'],
-            'tanggal_mulai_pekerjaan'   => ['nullable', 'date'],
-            'tanggal_selesai_pekerjaan' => ['nullable', 'date'],
-            'latest_activity'           => ['nullable', 'string'],
-            'status'                    => ['nullable', 'string'],
-            'items'                     => ['nullable', 'array'],
-            'pos'                       => ['nullable', 'array'],
-            'po_items'                  => ['nullable', 'array'],
-            'surat_bak_docs'            => ['nullable', 'array'],
-            'permintaan_dari'           => ['nullable', 'array'],
-            'periode'                   => ['nullable', 'string', 'max:255'],
-
-            'doc_rab'                   => $docRule('doc_rab'),
-            'doc_rab.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'doc_bak'                   => $docRule('doc_bak'),
-            'doc_bak.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'doc_surat_permintaan'      => $docRule('doc_surat_permintaan'),
-            'doc_surat_permintaan.*'    => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'doc_surat_izin_prinsip'    => $docRule('doc_surat_izin_prinsip'),
-            'doc_surat_izin_prinsip.*'  => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'doc_tor'                   => $docRule('doc_tor'),
-            'doc_tor.*'                 => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-            'doc_bast'                  => $docRule('doc_bast'),
-            'doc_bast.*'                => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:10240'],
-        ]);
-
         $jobPackage = null;
 
-        DB::transaction(function () use ($request, &$jobPackage, $validated) {
+        DB::transaction(function () use ($request, &$jobPackage) {
+            $validated = $request->validated();
             $validated['created_by'] = auth()->id();
 
             $poList = $validated['pos'] ?? [];
             $data = array_diff_key($validated, array_flip($this->docFields));
-            
             unset($data['pos'], $data['surat_bak_docs'], $data['permintaan_dari']);
+
+            // Pengaman: job_package harus berupa string, bukan array
+            if (is_array($data['job_package'] ?? null)) {
+                $data['job_package'] = implode(', ', array_filter($data['job_package']));
+            }
 
             if ($request->has('items')) {
                 $data['items'] = array_values($request->input('items', []));
@@ -267,19 +206,17 @@ class JobPackageController extends Controller
         return view('admin.job_packages.edit', compact('jobPackage'));
     }
 
-    // PERBAIKAN: Gunakan UpdateJobPackageRequest agar validasi & sanitasi terpusat
     public function update(UpdateJobPackageRequest $request, JobPackage $jobPackage)
     {
         Gate::authorize('edit-data');
 
-        // Ambil data yang sudah disanitasi & divalidasi oleh FormRequest
         $validated = $request->validated();
 
         DB::transaction(function () use ($request, $jobPackage, $validated) {
             $poList = $validated['pos'] ?? $request->input('pos', $request->input('po_items', []));
             $data = array_diff_key($validated, array_flip($this->docFields));
-            
-            // Pertahankan 'periode' di $data, hanya hapus array relasi
+
+            // 'periode' tetap dipertahankan di $data; hanya array relasi yang dibuang
             unset($data['pos'], $data['po_items'], $data['surat_bak_docs'], $data['permintaan_dari']);
 
             $jobPackageInput = $validated['job_package'] ?? $request->input('job_package');
@@ -422,7 +359,7 @@ class JobPackageController extends Controller
         }
 
         $files = is_array($jobPackage->$field) ? $jobPackage->$field : [$jobPackage->$field];
-        
+
         foreach ($files as $filePathOrUrl) {
             $isUrl = filter_var($filePathOrUrl, FILTER_VALIDATE_URL);
 
@@ -615,6 +552,7 @@ class JobPackageController extends Controller
             'tanggal_mulai_pekerjaan'   => 'Tanggal Mulai',
             'tanggal_selesai_pekerjaan' => 'Tanggal Selesai',
             'latest_activity'           => 'Aktivitas Terkini',
+            'periode'                   => 'Periode',
         ];
 
         $numericFields = [
@@ -652,53 +590,5 @@ class JobPackageController extends Controller
         return empty($changes)
             ? 'Data diperbarui (tidak ada perubahan nilai signifikan).'
             : implode('; ', $changes);
-    }
-
-    private function sanitizeDecimal(mixed $value): ?float
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        if (is_numeric($value)) {
-            return (float) $value;
-        }
-
-        $clean = str_replace(',', '.', trim((string) $value));
-        $clean = preg_replace('/[^\d.]/', '', $clean);
-
-        return is_numeric($clean) ? (float) $clean : null;
-    }
-
-    private function sanitizeNumber(mixed $value): ?float
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        if (is_numeric($value)) {
-            return (float) $value;
-        }
-
-        $clean = preg_replace('/[^\d.,]/', '', (string) $value);
-
-        if (strpos($clean, '.') !== false && strpos($clean, ',') !== false) {
-            if (strrpos($clean, ',') > strrpos($clean, '.')) {
-                $clean = str_replace('.', '', $clean);
-                $clean = str_replace(',', '.', $clean);
-            } else {
-                $clean = str_replace(',', '', $clean);
-            }
-        }
-        elseif (strpos($clean, '.') !== false) {
-            if (substr_count($clean, '.') > 1 || preg_match('/\.\d{3}$/', $clean)) {
-                $clean = str_replace('.', '', $clean);
-            }
-        }
-        elseif (strpos($clean, ',') !== false) {
-            $clean = str_replace(',', '.', $clean);
-        }
-
-        return is_numeric($clean) ? (float) $clean : null;
     }
 }
