@@ -99,7 +99,7 @@
                     'empty' => 'Tidak ada pekerjaan yang belum mulai.',
                     'badge_bg' => 'bg-slate-100 text-slate-700 border border-slate-200',
                     'bar_bg' => 'bg-slate-400',
-                    'icon_path' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', // Clock icon
+                    'icon_path' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
                     'status_label' => 'Belum Mulai'
                 ],
                 [
@@ -150,6 +150,26 @@
             } elseif ($currentStatusFilter === 'batal') {
                 $boards = array_filter($boards, fn($b) => $b['key'] === 'cancelled');
             }
+
+            // Fungsi Ekstraksi Nomor PO
+            $getPoNumber = function($poItem) {
+                if (is_object($poItem)) return $poItem->no_po ?? $poItem->po_number ?? $poItem->nomor_po ?? $poItem->no_po_doc ?? '-';
+                if (is_array($poItem)) return $poItem['no_po'] ?? $poItem['po_number'] ?? $poItem['nomor_po'] ?? $poItem['no_po_doc'] ?? '-';
+                return is_scalar($poItem) ? (string)$poItem : '-';
+            };
+
+            // Fungsi Ekstraksi Nilai PO
+            $getPoPrice = function($poItem) {
+                $rawVal = is_object($poItem) 
+                    ? ($poItem->price ?? $poItem->nilai_kontrak ?? $poItem->total_harga_po ?? $poItem->hps ?? $poItem->nilai_pekerjaan ?? $poItem->nilai_po_netto ?? $poItem->nilai_po_rp ?? $poItem->harga_total ?? $poItem->amount ?? $poItem->nilai_spk ?? $poItem->nilai_po ?? $poItem->harga ?? $poItem->nominal ?? $poItem->nilai ?? $poItem->total ?? $poItem->harga_po ?? $poItem->total_harga ?? null)
+                    : ($poItem['price'] ?? $poItem['nilai_kontrak'] ?? $poItem['total_harga_po'] ?? $poItem['hps'] ?? $poItem['nilai_pekerjaan'] ?? $poItem['nilai_po_netto'] ?? $poItem['nilai_po_rp'] ?? $poItem['harga_total'] ?? $poItem['amount'] ?? $poItem['nilai_spk'] ?? $poItem['nilai_po'] ?? $poItem['harga'] ?? $poItem['nominal'] ?? $poItem['nilai'] ?? $poItem['total'] ?? $poItem['harga_po'] ?? $poItem['total_harga'] ?? null);
+
+                if ($rawVal !== null && $rawVal !== '') {
+                    $cleaned = preg_replace('/[^0-9]/', '', (string)$rawVal);
+                    if ($cleaned !== '') return 'Rp ' . number_format((float)$cleaned, 0, ',', '.');
+                }
+                return null;
+            };
         @endphp
 
         <!-- Looping Tabel berdasarkan Status Card -->
@@ -208,24 +228,6 @@
                                     $pos = $jp->pos;
                                     $firstPo = $pos ? $pos->first() : null;
                                     $extraPoCount = $pos ? ($pos->count() - 1) : 0;
-
-                                    $getPoNumber = function($poItem) {
-                                        if (is_object($poItem)) return $poItem->no_po ?? $poItem->po_number ?? $poItem->nomor_po ?? $poItem->no_po_doc ?? '-';
-                                        if (is_array($poItem)) return $poItem['no_po'] ?? $poItem['po_number'] ?? $poItem['nomor_po'] ?? $poItem['no_po_doc'] ?? '-';
-                                        return is_scalar($poItem) ? (string)$poItem : '-';
-                                    };
-
-                                    $getPoPrice = function($poItem) {
-                                        $rawVal = is_object($poItem) 
-                                            ? ($poItem->nilai_po ?? $poItem->harga ?? $poItem->nominal ?? $poItem->nilai ?? $poItem->total ?? $poItem->harga_po ?? $poItem->total_harga ?? null)
-                                            : ($poItem['nilai_po'] ?? $poItem['harga'] ?? $poItem['nominal'] ?? $poItem['nilai'] ?? $poItem['total'] ?? $poItem['harga_po'] ?? $poItem['total_harga'] ?? null);
-
-                                        if ($rawVal !== null && $rawVal !== '') {
-                                            $cleaned = preg_replace('/[^0-9]/', '', (string)$rawVal);
-                                            if ($cleaned !== '') return 'Rp ' . number_format((float)$cleaned, 0, ',', '.');
-                                        }
-                                        return null;
-                                    };
                                 @endphp
                                 <tr x-data="{ openDetailModal: false }" class="hover:bg-slate-50/80 transition-colors">
                                     <!-- NO -->
