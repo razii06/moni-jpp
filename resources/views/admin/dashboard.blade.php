@@ -225,17 +225,18 @@
                 </div>
             </div>
 
-            <!-- Doughnut Chart Container -->
-            <div class="animate-pop-up delay-600 lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0">
-                <div class="flex items-center justify-between mb-6">
+            <!-- ApexCharts Donut Container -->
+            <div class="animate-pop-up delay-600 lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0 flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-2">
                     <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Distribusi Status Progres</h4>
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 </div>
-                <div class="h-72 relative w-full flex items-center justify-center">
-                    <canvas id="distributionChart" data-selesai="{{ $distribution['selesai'] ?? 0 }}"
+                <div class="relative w-full flex items-center justify-center min-h-[360px]">
+                    <div id="distributionApexChart" class="w-full" style="min-height: 350px;"
+                        data-selesai="{{ $distribution['selesai'] ?? 0 }}"
                         data-baik="{{ $distribution['baik'] ?? 0 }}"
                         data-perlu-perhatian="{{ $distribution['perlu_perhatian'] ?? 0 }}"
-                        data-belum-mulai="{{ $distribution['belum_mulai'] ?? 0 }}"></canvas>
+                        data-belum-mulai="{{ $distribution['belum_mulai'] ?? 0 }}"></div>
                 </div>
             </div>
 
@@ -540,95 +541,190 @@
             @endif
         </div>
 
+        <!-- Library ApexCharts -->
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
         <!-- Script Rendering Chart -->
         <script>
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof Chart === 'undefined') return;
+            // 1. Line Chart Tren Pembuatan Job Package (Chart.js)
+            if (typeof Chart !== 'undefined') {
+                const elTrend = document.getElementById('jobPackageTrendChart');
+                if (elTrend) {
+                    const ctx = elTrend.getContext('2d');
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                    gradient.addColorStop(0, 'rgba(15, 43, 92, 0.25)');
+                    gradient.addColorStop(1, 'rgba(15, 43, 92, 0.0)');
 
-            // 1. Line Chart Tren Pembuatan Job Package
-            const elTrend = document.getElementById('jobPackageTrendChart');
-            if (elTrend) {
-                const ctx = elTrend.getContext('2d');
-                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                gradient.addColorStop(0, 'rgba(15, 43, 92, 0.25)');
-                gradient.addColorStop(1, 'rgba(15, 43, 92, 0.0)');
-
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: @json($labels ?? []),
-                        datasets: [{
-                            label: 'Jumlah Paket',
-                            data: @json($dataValues ?? []),
-                            borderColor: '#0f2b5c',
-                            backgroundColor: gradient,
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
-                            pointBackgroundColor: '#f59e0b',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: @json($labels ?? []),
+                            datasets: [{
+                                label: 'Jumlah Paket',
+                                data: @json($dataValues ?? []),
+                                borderColor: '#0f2b5c',
+                                backgroundColor: gradient,
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 5,
+                                pointHoverRadius: 7,
+                                pointBackgroundColor: '#f59e0b',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2
+                            }]
                         },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { stepSize: 1 },
-                                grid: { color: '#f1f5f9' }
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
                             },
-                            x: {
-                                grid: { display: false }
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { stepSize: 1 },
+                                    grid: { color: '#f1f5f9' }
+                                },
+                                x: {
+                                    grid: { display: false }
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
 
-            // 2. Doughnut Chart Distribusi Status Progres
-            const elDist = document.getElementById('distributionChart');
-            if (elDist) {
-                const selesai = Number(elDist.dataset.selesai) || 0;
-                const baik = Number(elDist.dataset.baik) || 0;
-                const perluPerhatian = Number(elDist.dataset.perluPerhatian) || 0;
-                const belumMulai = Number(elDist.dataset.belumMulai) || 0;
+            // 2. ApexCharts Donut Distribusi Status Progres
+            const elApex = document.getElementById('distributionApexChart');
+            if (elApex && typeof ApexCharts !== 'undefined') {
+                const selesai = Number(elApex.dataset.selesai) || 0;
+                const baik = Number(elApex.dataset.baik) || 0;
+                const perluPerhatian = Number(elApex.dataset.perluPerhatian) || 0;
+                const belumMulai = Number(elApex.dataset.belumMulai) || 0;
 
-                new Chart(elDist.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Selesai (≥90%)', 'Baik (50-89%)', 'Perlu Perhatian (<50%)', 'Belum Mulai (0%)'],
-                        datasets: [{
-                            data: [selesai, baik, perluPerhatian, belumMulai],
-                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#94a3b8'],
-                            borderWidth: 3,
-                            borderColor: '#ffffff'
-                        }]
+                const options = {
+                    series: [selesai, baik, perluPerhatian, belumMulai],
+                    labels: ['Selesai (≥90%)', 'Baik (50-89%)', 'Perlu Perhatian (<50%)', 'Belum Mulai (0%)'],
+                    colors: ['#10b981', '#f59e0b', '#ef4444', '#94a3b8'],
+                    chart: {
+                        type: 'donut',
+                        width: '100%',
+                        height: 380,
+                        fontFamily: 'inherit',
+                        toolbar: { show: false },
+                        animations: {
+                            enabled: true,
+                            easing: 'easeinout',
+                            speed: 800
+                        }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
+                    stroke: {
+                        width: 3,
+                        colors: ['#ffffff']
+                    },
+                    plotOptions: {
+                        pie: {
+                            donut: {
+                                size: '72%',
                                 labels: {
-                                    boxWidth: 10,
-                                    font: {
-                                        size: 11,
-                                        weight: 'bold'
+                                    show: true,
+                                    name: {
+                                        show: true,
+                                        fontSize: '13px',
+                                        fontWeight: 700,
+                                        color: '#64748b',
+                                        offsetY: -5
+                                    },
+                                    value: {
+                                        show: true,
+                                        fontSize: '22px',
+                                        fontWeight: 900,
+                                        color: '#0f2b5c',
+                                        offsetY: 5,
+                                        formatter: function(val) {
+                                            return val + ' Paket';
+                                        }
+                                    },
+                                    total: {
+                                        show: true,
+                                        label: 'Total Aktif',
+                                        fontSize: '13px',
+                                        fontWeight: 700,
+                                        color: '#94a3b8',
+                                        formatter: function(w) {
+                                            const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                            return total + ' Paket';
+                                        }
                                     }
                                 }
                             }
+                        }
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function(val) {
+                            return Math.round(val) + '%';
                         },
-                        cutout: '72%'
-                    }
-                });
+                        style: {
+                            fontSize: '13px',
+                            fontWeight: 'bold',
+                            colors: ['#ffffff']
+                        },
+                        dropShadow: {
+                            enabled: true,
+                            top: 1,
+                            left: 1,
+                            blur: 2,
+                            color: '#000',
+                            opacity: 0.5
+                        }
+                    },
+                    legend: {
+                        show: true,
+                        position: 'bottom',
+                        horizontalAlign: 'center',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        labels: {
+                            colors: '#64748b'
+                        },
+                        markers: {
+                            width: 10,
+                            height: 10,
+                            radius: 4
+                        },
+                        itemMargin: {
+                            horizontal: 8,
+                            vertical: 4
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        y: {
+                            formatter: function(val) {
+                                return val + ' Paket';
+                            }
+                        }
+                    },
+                    responsive: [
+                        {
+                            breakpoint: 480,
+                            options: {
+                                chart: {
+                                    height: 320
+                                },
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    ]
+                };
+
+                const chart = new ApexCharts(elApex, options);
+                chart.render();
             }
         });
         </script>

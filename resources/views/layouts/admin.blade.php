@@ -12,6 +12,8 @@
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
         <!-- Chart.js -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <!-- ApexCharts -->
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
         <!-- Animasi Halaman Global Murni (CSS GPU Engine) -->
         <style>

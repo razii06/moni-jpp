@@ -16,9 +16,20 @@ Route::get('/monitoring/job-packages/{jobPackage}', [HomeController::class, 'sho
 // Breeze Authentication Routes
 require __DIR__ . '/auth.php';
 
+// 2FA Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/2fa/verify', [App\Http\Controllers\Auth\TwoFactorController::class, 'showVerifyForm'])->name('2fa.verify');
+    Route::post('/2fa/verify', [App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])->name('2fa.verify.post');
+});
+
 // Panel Admin JPP
-Route::middleware(['auth', 'throttle:120,1'])->prefix('admin')->as('admin.')->group(function () {
+Route::middleware(['auth', App\Http\Middleware\Check2FA::class, 'throttle:120,1'])->prefix('admin')->as('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // 2FA Setup
+    Route::get('/2fa/setup', [App\Http\Controllers\Auth\TwoFactorController::class, 'setup'])->name('2fa.setup');
+    Route::post('/2fa/enable', [App\Http\Controllers\Auth\TwoFactorController::class, 'enable'])->name('2fa.enable');
+    Route::post('/2fa/disable', [App\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('2fa.disable');
 
     Route::get('/dokumentasi', [DokumentasiController::class, 'index'])->name('dokumentasi.index');
     Route::post('/dokumentasi', [DokumentasiController::class, 'store'])->name('dokumentasi.store');

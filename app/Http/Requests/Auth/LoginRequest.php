@@ -7,6 +7,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -30,6 +31,17 @@ class LoginRequest extends FormRequest
         return [
             'username' => ['required', 'string'],
             'password' => ['required', 'string'],
+            'g-recaptcha-response' => ['required', function ($attribute, $value, $fail) {
+                $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                    'secret' => env('RECAPTCHA_SECRET_KEY'),
+                    'response' => $value,
+                    'remoteip' => request()->ip()
+                ]);
+                
+                if (! $response->json('success')) {
+                    $fail('Verifikasi Captcha gagal. Silakan coba lagi dan pastikan Anda bukan robot.');
+                }
+            }],
         ];
     }
 

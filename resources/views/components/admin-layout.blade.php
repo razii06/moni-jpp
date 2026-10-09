@@ -9,9 +9,10 @@
     <!-- Kita matikan sementara Vite-nya untuk membypass terminal -->
     <!-- @vite(['resources/css/app.css', 'resources/js/app.js']) -->
     
-    <!-- Tailwind CDN agar styling langsung jalan -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- ApexCharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Animasi Mulus -->
@@ -100,6 +101,17 @@
                     <span>User Management</span>
                 </a>
                 @endif
+
+                <span class="px-4 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-2 mt-6">KEAMANAN AKUN</span>
+                
+                <!-- Menu 2FA Setup -->
+                <a href="{{ route('admin.2fa.setup') }}"
+                    class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm {{ request()->routeIs('admin.2fa.setup') ? 'bg-[#0f2b5c] text-white font-bold border-l-4 border-amber-400' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-900 font-semibold' }}">
+                    <svg class="w-5 h-5 {{ request()->routeIs('admin.2fa.setup') ? 'text-amber-400' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>Pengaturan 2FA</span>
+                </a>
             </nav>
         </div>
 

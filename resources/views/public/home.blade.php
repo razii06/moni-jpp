@@ -35,11 +35,23 @@
             box-shadow: 0 0 25px rgba(245, 158, 11, 0.5) !important;
             transform: translateY(-4px);
         }
+
+        /* Animasi Marquee Horizontal */
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            animation: marquee 12s linear infinite;
+        }
+        .marquee-wrapper:hover .animate-marquee {
+            animation-play-state: paused;
+        }
     </style>
 
     <!-- Hero Banner (Full-Width, Gradasi Biru ke Putih, Teks Rata Tengah) -->
     <div class="animate-popup delay-100 relative py-14 sm:py-20 overflow-hidden text-center"
-            style="background: linear-gradient(180deg, #0f2b5c 0%, #1b4385 65%, #f8fafc 100%);">
+            style="background: linear-gradient(180deg, rgba(15, 43, 92, 0.85) 0%, rgba(27, 67, 133, 0.85) 65%, rgba(248, 250, 252, 1) 100%), url('{{ asset('images/pimlatar.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
         
         <!-- Accent Glow Overlay -->
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-400/20 via-transparent to-transparent pointer-events-none"></div>
@@ -63,7 +75,8 @@
 
             <!-- Deskripsi Singkat -->
             <p class="text-sm sm:text-base text-white font-bold leading-relaxed max-w-2xl mx-auto drop-shadow-sm" style="color: #ffffff;">
-                Pantau status real-time, penerbitan PO/SO, dan progres pencapaian pekerjaan Dept. JPP secara akurat dan terbuka.
+                Pantau status real-time, penerbitan PO/SO, dan progres pencapaian pekerjaan <br class="hidden sm:inline" />
+                <span class="whitespace-nowrap">Dept. JPP</span> secara akurat dan terbuka.
             </p>
 
             <!-- Tombol Aksi -->
@@ -437,87 +450,98 @@
                 </span>
             </div>
 
-            <!-- CONTAINER SINGLE ROW -->
-            <div class="flex items-center gap-4 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scrollbar-none focus:outline-none">
-                @forelse($galeri as $item)
-                    @php
-                        $rawPath = $item->file_path;
-                        $previewUrl = $rawPath;
-                        $fileUrl = $rawPath;
+            <!-- CONTAINER INFINITE MARQUEE -->
+            @if(count($galeri) > 0)
+                <div class="marquee-wrapper flex overflow-hidden w-full relative py-2">
+                    <!-- Efek Gradasi (Fade) di Kiri & Kanan -->
+                    <div class="absolute inset-y-0 left-0 w-8 sm:w-20 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+                    <div class="absolute inset-y-0 right-0 w-8 sm:w-20 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
 
-                        if (\Illuminate\Support\Str::startsWith($rawPath, ['http://', 'https://'])) {
-                            if (\Illuminate\Support\Str::contains($rawPath, ['drive.google.com', 'googleusercontent.com'])) {
-                                preg_match('/[-\w]{25,}/', $rawPath, $matches);
-                                $fileId = $matches[0] ?? null;
-                                if ($fileId) {
-                                    $previewUrl = "https://lh3.googleusercontent.com/d/{$fileId}";
-                                    $fileUrl = "https://drive.google.com/file/d/{$fileId}/view";
-                                }
-                            } 
-                            elseif (\Illuminate\Support\Str::contains($rawPath, ['youtube.com', 'youtu.be'])) {
-                                preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $rawPath, $ytMatches);
-                                $ytId = $ytMatches[1] ?? null;
-                                if ($ytId) {
-                                    $previewUrl = "https://img.youtube.com/vi/{$ytId}/hqdefault.jpg";
-                                }
-                            }
-                        } else {
-                            $previewUrl = \Illuminate\Support\Str::startsWith($rawPath, 'storage/') 
-                                ? asset($rawPath) 
-                                : asset('storage/' . ltrim($rawPath, '/'));
-                            $fileUrl = $previewUrl;
-                        }
-                    @endphp
+                    <!-- Looping 2 kali untuk efek endless scroll -->
+                    @for ($i = 0; $i < 2; $i++)
+                        <div class="flex gap-4 min-w-full shrink-0 animate-marquee pr-4" {!! $i === 1 ? 'aria-hidden="true"' : '' !!}>
+                            @foreach($galeri as $item)
+                                @php
+                                    $rawPath = $item->file_path;
+                                    $previewUrl = $rawPath;
+                                    $fileUrl = $rawPath;
 
-                    <div class="w-64 sm:w-72 shrink-0 snap-start rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm hover:shadow-md transition group glow-yellow">
-                        <div class="relative h-40 w-full overflow-hidden rounded-xl bg-slate-100 border border-slate-100 flex items-center justify-center">
-                            @if($item->kategori === 'Foto Kegiatan' || \Illuminate\Support\Str::contains($previewUrl, ['lh3.googleusercontent.com', 'img.youtube.com', 'storage/']))
-                                <img src="{{ $previewUrl }}" 
-                                    alt="{{ $item->judul }}" 
-                                    loading="lazy" 
-                                    class="h-full w-full object-cover group-hover:scale-105 transition duration-300"
-                                    onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'flex flex-col items-center justify-center text-slate-400\'><svg class=\'w-8 h-8 mb-1\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'/></svg><span class=\'text-[10px] font-semibold\'>Gambar Tidak Ditemukan</span></div>';">
-                            @elseif($item->kategori === 'Dokumen PDF')
-                                <div class="flex flex-col items-center justify-center text-rose-500">
-                                    <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V7.5L14.5 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                    </svg>
-                                    <span class="text-[10px] font-black tracking-wider mt-1">DOKUMEN PDF</span>
-                                </div>
-                            @else
-                                <div class="flex flex-col items-center justify-center text-indigo-600">
-                                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 border border-indigo-100">
-                                        <svg class="h-6 w-6 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z"/>
-                                        </svg>
+                                    if (\Illuminate\Support\Str::startsWith($rawPath, ['http://', 'https://'])) {
+                                        if (\Illuminate\Support\Str::contains($rawPath, ['drive.google.com', 'googleusercontent.com'])) {
+                                            preg_match('/[-\w]{25,}/', $rawPath, $matches);
+                                            $fileId = $matches[0] ?? null;
+                                            if ($fileId) {
+                                                $previewUrl = "https://lh3.googleusercontent.com/d/{$fileId}";
+                                                $fileUrl = "https://drive.google.com/file/d/{$fileId}/view";
+                                            }
+                                        } 
+                                        elseif (\Illuminate\Support\Str::contains($rawPath, ['youtube.com', 'youtu.be'])) {
+                                            preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $rawPath, $ytMatches);
+                                            $ytId = $ytMatches[1] ?? null;
+                                            if ($ytId) {
+                                                $previewUrl = "https://img.youtube.com/vi/{$ytId}/hqdefault.jpg";
+                                            }
+                                        }
+                                    } else {
+                                        $previewUrl = \Illuminate\Support\Str::startsWith($rawPath, 'storage/') 
+                                            ? asset($rawPath) 
+                                            : asset('storage/' . ltrim($rawPath, '/'));
+                                        $fileUrl = $previewUrl;
+                                    }
+                                @endphp
+
+                                <div class="w-64 sm:w-72 shrink-0 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm hover:shadow-md transition group glow-yellow cursor-grab active:cursor-grabbing">
+                                    <div class="relative h-40 w-full overflow-hidden rounded-xl bg-slate-100 border border-slate-100 flex items-center justify-center">
+                                        @if($item->kategori === 'Foto Kegiatan' || \Illuminate\Support\Str::contains($previewUrl, ['lh3.googleusercontent.com', 'img.youtube.com', 'storage/']))
+                                            <img src="{{ $previewUrl }}" 
+                                                alt="{{ $item->judul }}" 
+                                                loading="lazy" 
+                                                class="h-full w-full object-cover group-hover:scale-105 transition duration-300"
+                                                onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'flex flex-col items-center justify-center text-slate-400\'><svg class=\'w-8 h-8 mb-1\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'/></svg><span class=\'text-[10px] font-semibold\'>Gambar Tidak Ditemukan</span></div>';">
+                                        @elseif($item->kategori === 'Dokumen PDF')
+                                            <div class="flex flex-col items-center justify-center text-rose-500">
+                                                <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V7.5L14.5 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                                </svg>
+                                                <span class="text-[10px] font-black tracking-wider mt-1">DOKUMEN PDF</span>
+                                            </div>
+                                        @else
+                                            <div class="flex flex-col items-center justify-center text-indigo-600">
+                                                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 border border-indigo-100">
+                                                    <svg class="h-6 w-6 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M8 5v14l11-7z"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-[10px] font-bold mt-2">TAUTAN VIDEO</span>
+                                            </div>
+                                        @endif
+
+                                        <span class="absolute top-2 left-2 rounded-lg bg-slate-900/70 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold text-white">
+                                            {{ $item->kategori ?? 'Dokumentasi' }}
+                                        </span>
                                     </div>
-                                    <span class="text-[10px] font-bold mt-2">TAUTAN VIDEO</span>
+
+                                    <div class="mt-3 flex items-center justify-between gap-2">
+                                        <div class="overflow-hidden">
+                                            <h3 class="text-xs font-bold text-slate-800 truncate" title="{{ $item->judul }}">{{ $item->judul }}</h3>
+                                            <p class="text-[10px] font-medium text-slate-400">{{ $item->created_at?->format('d M Y') }}</p>
+                                        </div>
+                                        <a href="{{ $fileUrl }}" target="_blank" rel="noopener" class="shrink-0 rounded-xl bg-slate-100 p-2 text-slate-600 hover:bg-[#0f2b5c] hover:text-white transition" title="Buka File">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                            </svg>
+                                        </a>
+                                    </div>
                                 </div>
-                            @endif
-
-                            <span class="absolute top-2 left-2 rounded-lg bg-slate-900/70 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold text-white">
-                                {{ $item->kategori ?? 'Dokumentasi' }}
-                            </span>
+                            @endforeach
                         </div>
-
-                        <div class="mt-3 flex items-center justify-between gap-2">
-                            <div class="overflow-hidden">
-                                <h3 class="text-xs font-bold text-slate-800 truncate" title="{{ $item->judul }}">{{ $item->judul }}</h3>
-                                <p class="text-[10px] font-medium text-slate-400">{{ $item->created_at?->format('d M Y') }}</p>
-                            </div>
-                            <a href="{{ $fileUrl }}" target="_blank" rel="noopener" class="shrink-0 rounded-xl bg-slate-100 p-2 text-slate-600 hover:bg-[#0f2b5c] hover:text-white transition" title="Buka File">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                @empty
-                    <div class="w-full py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
-                        Belum ada dokumentasi beranda yang diunggah.
-                    </div>
-                @endforelse
-            </div>
+                    @endfor
+                </div>
+            @else
+                <div class="w-full py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
+                    Belum ada dokumentasi beranda yang diunggah.
+                </div>
+            @endif
         </div>
 
         <!-- Info Section -->
@@ -525,40 +549,40 @@
                 aria-label="Informasi JPP" 
                 style="margin-bottom: 80px;">
             
-            <article class="group glow-yellow relative bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between min-h-[176px]">
+            <article class="group glow-yellow relative p-6 rounded-2xl border border-slate-800 flex flex-col justify-between min-h-[176px] text-white" style="background: linear-gradient(135deg, #0f2b5c, #0b1120);">
                 <div>
-                    <h4 class="flex items-center gap-3 text-slate-900 text-base font-extrabold mb-2">
-                        <div class="p-2 bg-blue-50 text-blue-700 rounded-xl border border-blue-100 group-hover:bg-amber-400 group-hover:text-slate-900 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <h4 class="flex items-center gap-3 text-white text-base font-extrabold mb-2">
+                        <div class="p-2 bg-white/10 text-white rounded-xl border border-white/20 group-hover:bg-amber-400 group-hover:text-slate-900 transition-colors">
+                            <svg class="w-5 h-5 text-white group-hover:text-slate-900 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                             </svg>
                         </div>
                         Penjelasan Sistem
                     </h4>
-                    <p class="text-xs text-slate-500 leading-relaxed mb-4">
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
                         Pelajari cara kerja sistem monitoring Job Package (SM01) Jasa Pelayanan Pabrik.
                     </p>
                 </div>
-                <a href="#table-section" class="text-xs font-bold text-blue-900 hover:text-amber-600 inline-flex items-center gap-1">
+                <a href="#table-section" class="text-xs font-bold text-amber-300 hover:text-amber-200 inline-flex items-center gap-1">
                     Pelajari Alur Kerja →
                 </a>
             </article>
 
-            <article class="group glow-yellow relative bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between min-h-[176px]">
+            <article class="group glow-yellow relative p-6 rounded-2xl border border-slate-800 flex flex-col justify-between min-h-[176px] text-white" style="background: linear-gradient(135deg, #0f2b5c, #0b1120);">
                 <div>
-                    <h4 class="flex items-center gap-3 text-slate-900 text-base font-extrabold mb-2">
-                        <div class="p-2 bg-red-50 text-red-600 rounded-xl border border-red-100 group-hover:bg-amber-400 group-hover:text-slate-900 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <h4 class="flex items-center gap-3 text-white text-base font-extrabold mb-2">
+                        <div class="p-2 bg-white/10 text-white rounded-xl border border-white/20 group-hover:bg-amber-400 group-hover:text-slate-900 transition-colors">
+                            <svg class="w-5 h-5 text-white group-hover:text-slate-900 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                             </svg>
                         </div>
                         Dokumentasi Umum
                     </h4>
-                    <p class="text-xs text-slate-500 leading-relaxed mb-4">
+                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
                         Akses dokumentasi aktivitas dan rekam jejak pekerjaan yang bersifat publik.
                     </p>
                 </div>
-                <a href="https://www.youtube.com/@sbu.jpp_pim" target="_blank" rel="noopener" class="text-xs font-bold text-blue-900 hover:text-amber-600 inline-flex items-center gap-1">
+                <a href="https://www.youtube.com/@sbu.jpp_pim" target="_blank" rel="noopener" class="text-xs font-bold text-amber-300 hover:text-amber-200 inline-flex items-center gap-1">
                     Tonton di YouTube →
                 </a>
             </article>
