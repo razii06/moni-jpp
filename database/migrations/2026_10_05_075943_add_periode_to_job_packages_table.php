@@ -8,10 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('job_packages', function (Blueprint $table) {
-            $table->string('periode')->nullable()->after('job_package');
-        });
-    }
+        if (!Schema::hasColumn('job_packages', 'periode')) {
+            Schema::table('job_packages', function (Blueprint $table) {
+                $table->string('periode')->nullable()->after('job_package');
+            });
+        }
+}
 
     public function down(): void
     {
