@@ -24,6 +24,13 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
+        \App\Models\SystemLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => 'UPDATE PASSWORD',
+            'description' => "Memperbarui kata sandi akun.",
+            'ip_address'  => request()->ip()
+        ]);
+
         return back()->with('status', 'password-updated');
     }
 }

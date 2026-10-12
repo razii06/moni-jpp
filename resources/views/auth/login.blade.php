@@ -16,10 +16,12 @@
         .feedback-icon { width:78px; height:78px; display:grid; place-items:center; border-radius:50%; color:#fff; font-size:42px; font-weight:900; box-shadow:0 0 32px rgba(16,185,129,.45); animation: feedbackPop .45s cubic-bezier(.175,.885,.32,1.275) both; }
         .feedback-icon.success { background:#10b981; }
         .feedback-icon.failed { background:#ef4444; box-shadow:0 0 32px rgba(239,68,68,.45); }
+        .feedback-icon.loading { background:transparent; color:#3b82f6; border:6px solid #bfdbfe; border-top-color:#3b82f6; box-shadow:none; animation: spin 1s linear infinite; }
         .feedback-content h3 { margin:0; font-size:1.55rem; font-weight:900; }
         .feedback-content p { margin:0; color:#cbd5e1; font-size:.86rem; }
         @keyframes feedbackIn { from { opacity:0; } to { opacity:1; } }
         @keyframes feedbackPop { from { opacity:0; transform:scale(.5); } to { opacity:1; transform:scale(1); } }
+        @keyframes spin { to { transform:rotate(360deg); } }
     </style>
 </head>
 <body class="font-sans antialiased text-slate-800 bg-slate-50 selection:bg-[#2653e0] selection:text-white">
@@ -33,16 +35,16 @@
         </div>
     </div>
 
-    <!-- Latar Belakang Luar: Putih dengan gradasi biru sangat muda dan padding -->
-    <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-white via-blue-50/50 to-indigo-50/40">
+    <!-- Latar Belakang Luar: Gradasi abu-abu kebiruan untuk menonjolkan kartu putih -->
+    <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-100 via-[#f0f4f8] to-slate-200">
         
-        <!-- Kartu Utama Melayang (Floating Card) -->
-        <div class="w-full max-w-[1000px] bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] flex flex-col md:flex-row overflow-hidden border border-slate-100 min-h-[580px]">
+        <!-- Kartu Utama Melayang (Floating Card) dengan shadow elegan -->
+        <div class="w-full max-w-[1000px] bg-white rounded-[2.5rem] shadow-2xl shadow-blue-900/15 ring-1 ring-slate-900/5 flex flex-col md:flex-row overflow-hidden min-h-[580px]">
             
             <!-- Sisi Kiri (Gambar Pabrik) -->
             <!-- p-3 memberikan jarak agar gambar tidak menabrak batas kartu dan terlihat seperti bingkai -->
-            <!-- Di layar HP, gambar akan memiliki tinggi tetap 30vh (h-[30vh]) dan tidak boleh menyusut (shrink-0) -->
-            <div class="w-full md:w-1/2 p-3 h-[30vh] md:h-auto shrink-0">
+            <!-- Di layar HP, gambar akan memiliki tinggi 42vh (h-[42vh]) dan tidak boleh menyusut (shrink-0) -->
+            <div class="w-full md:w-1/2 p-3 h-[42vh] md:h-auto shrink-0">
                 <div class="w-full h-full rounded-[2rem] overflow-hidden relative bg-[#0f2b5c] shadow-inner group">
                     <!-- Gunakan login2.png. object-cover memastikan gambar terisi penuh pada area berbingkai -->
                     <img src="{{ asset('images/login2.png') }}" alt="Pabrik PT PIM" class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105">
@@ -62,10 +64,10 @@
             </div>
 
             <!-- Sisi Kanan (Form Login) -->
-            <div class="w-full md:w-1/2 flex flex-col justify-center px-8 py-12 lg:px-16 relative bg-white">
+            <div class="w-full md:w-1/2 flex flex-col justify-center px-8 py-6 md:py-12 lg:px-16 relative bg-white rounded-b-[2.5rem] md:rounded-b-none">
                 
                 <!-- Ikon Kecil di atas judul -->
-                <div class="mb-8">
+                <div class="mb-6 md:mb-8">
                     <div class="w-12 h-12 bg-blue-50 text-[#2653e0] rounded-2xl flex items-center justify-center mb-4">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
@@ -89,8 +91,7 @@
                     <div>
                         <label for="username" class="block text-sm font-bold text-slate-700 mb-1.5">Username</label>
                         <input id="username" type="text" name="username" value="{{ old('username') }}" required autofocus autocomplete="username"
-                            class="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:border-[#2653e0] focus:ring-1 focus:ring-[#2653e0] transition-all font-medium"
-                            placeholder="Contoh: admin_jpp">
+                            class="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-sm focus:outline-none focus:border-[#2653e0] focus:ring-1 focus:ring-[#2653e0] transition-all font-medium">
                         @if ($errors->has('username'))
                         <p class="mt-1.5 text-xs text-rose-500 font-semibold">{{ $errors->first('username') }}</p>
                         @endif
@@ -118,9 +119,9 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <!-- Menggunakan warna biru solid yang terang mirip dengan referensi -->
-                    <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-[#3949ff] hover:bg-[#2836d1] text-white font-bold text-sm transition-all shadow-[0_8px_20px_-6px_rgba(57,73,255,0.4)] mt-4 active:scale-[0.98]">
-                        Masuk ke Sistem
+                    <!-- Warna tombol diselaraskan dengan gambar pabrik (biru navy gelap) -->
+                    <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-[#0f2b5c] hover:bg-[#0a1d40] text-white font-bold text-sm transition-all shadow-[0_8px_20px_-6px_rgba(15,43,92,0.5)] mt-4 active:scale-[0.98]">
+                        Log in
                     </button>
                     
                     <!-- Footer Info -->
@@ -142,22 +143,38 @@
         const text = document.getElementById('feedbackText');
         const errors = @json($errors->all());
 
-        const showFeedback = (success, message) => {
-            icon.className = `feedback-icon ${success ? 'success' : 'failed'}`;
-            icon.textContent = success ? '✓' : '×';
-            title.textContent = success ? 'Login berhasil!' : 'Login gagal';
-            text.textContent = message;
+        const showFeedback = (status, customTitle, customMessage) => {
             feedback.classList.add('is-visible');
+            
+            if (status === 'loading') {
+                icon.className = 'feedback-icon loading';
+                icon.textContent = ''; // Kosongkan ikon (hanya spinner)
+                title.textContent = customTitle || 'Memverifikasi...';
+                text.textContent = customMessage || 'Mohon tunggu sebentar.';
+            } else if (status === 'success') {
+                icon.className = 'feedback-icon success';
+                icon.textContent = '✓';
+                title.textContent = customTitle || 'Login berhasil!';
+                text.textContent = customMessage || 'Membuka Dashboard...';
+            } else {
+                icon.className = 'feedback-icon failed';
+                icon.textContent = '×';
+                title.textContent = customTitle || 'Login gagal';
+                text.textContent = customMessage || 'Terjadi kesalahan.';
+            }
         };
 
         if (errors.length) {
-            showFeedback(false, errors[0]);
+            showFeedback('error', 'Login gagal', errors[0]);
             setTimeout(() => feedback.classList.remove('is-visible'), 2200);
         }
 
         form?.addEventListener('submit', async (event) => {
             event.preventDefault();
-            showFeedback(true, 'Memverifikasi akun...');
+            
+            // 1. Munculkan loading spinner terlebih dahulu
+            showFeedback('loading', 'Memverifikasi...', 'Mengecek kredensial Anda');
+            
             try {
                 const response = await fetch(form.action, {
                     method: 'POST',
@@ -165,18 +182,32 @@
                     headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
                     credentials: 'same-origin'
                 });
+                
                 if (response.ok || response.redirected) {
-                    showFeedback(true, 'Membuka Dashboard...');
-                    setTimeout(() => { window.location.href = '{{ route('admin.dashboard') }}'; }, 850);
+                    // 2a. Jika berhasil, cek tujuan redirect (apakah ke Dashboard atau 2FA)
+                    if (response.url && response.url.includes('/2fa/verify')) {
+                        showFeedback('success', 'Verifikasi Diperlukan!', 'Mengarahkan ke halaman OTP 2FA...');
+                        setTimeout(() => { window.location.href = response.url; }, 850);
+                    } else {
+                        showFeedback('success', 'Login berhasil!', 'Membuka Dashboard...');
+                        setTimeout(() => { window.location.href = '{{ route('admin.dashboard') }}'; }, 850);
+                    }
                     return;
                 }
+                
+                // 2b. Jika validasi gagal (misal captcha/password salah)
                 const payload = await response.json().catch(() => ({}));
                 const message = payload?.errors ? Object.values(payload.errors).flat()[0] : 'Username atau password tidak sesuai.';
-                showFeedback(false, message);
+                
+                showFeedback('error', 'Login gagal', message);
+                
                 if (typeof grecaptcha !== 'undefined') { grecaptcha.reset(); }
                 setTimeout(() => feedback.classList.remove('is-visible'), 2200);
+                
             } catch (error) {
-                showFeedback(false, 'Server tidak dapat dihubungi. Coba lagi.');
+                // 2c. Jika server mati/terputus
+                showFeedback('error', 'Koneksi Terputus', 'Server tidak dapat dihubungi. Coba lagi.');
+                
                 if (typeof grecaptcha !== 'undefined') { grecaptcha.reset(); }
                 setTimeout(() => feedback.classList.remove('is-visible'), 2200);
             }

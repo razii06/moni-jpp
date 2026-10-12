@@ -40,6 +40,9 @@ Route::middleware(['auth', App\Http\Middleware\Check2FA::class, 'throttle:120,1'
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
+    // System Logs
+    Route::get('/system-logs', [\App\Http\Controllers\Admin\SystemLogController::class, 'index'])->name('system-logs.index');
+
     // Custom Job Package Routes (Wajib didefinisikan sebelum Route::resource)
     Route::get('/job-packages/export', [JobPackageController::class, 'export'])
         ->middleware('throttle:5,1')

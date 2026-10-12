@@ -52,5 +52,59 @@
                 {{ $slot }}
             </main>
         </div>
+
+        <!-- SweetAlert2 untuk Flash Messages Interaktif -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+
+                @if(session('status') === 'profile-updated')
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Profil berhasil diperbarui!'
+                    });
+                @elseif(session('status') === 'password-updated')
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Kata sandi berhasil diubah!'
+                    });
+                @elseif(session('status') === 'verification-link-sent')
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Tautan verifikasi telah dikirim.'
+                    });
+                @elseif(session('success'))
+                    Toast.fire({
+                        icon: 'success',
+                        title: '{{ session("success") }}'
+                    });
+                @elseif(session('status') && !in_array(session('status'), ['profile-updated', 'password-updated', 'verification-link-sent']))
+                    Toast.fire({
+                        icon: 'success',
+                        title: '{{ session("status") }}'
+                    });
+                @endif
+                
+                @if(session('error'))
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi Kesalahan',
+                        text: '{{ session("error") }}',
+                        confirmButtonColor: '#0f2b5c',
+                    });
+                @endif
+            });
+        </script>
     </body>
 </html>

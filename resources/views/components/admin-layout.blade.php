@@ -100,6 +100,14 @@
                     </svg>
                     <span>User Management</span>
                 </a>
+
+                <a href="{{ route('admin.system-logs.index') }}"
+                    class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm {{ request()->routeIs('admin.system-logs.*') ? 'bg-[#0f2b5c] text-white font-bold border-l-4 border-amber-400' : 'text-slate-600 hover:bg-slate-50 hover:text-blue-900 font-semibold' }}">
+                    <svg class="w-5 h-5 {{ request()->routeIs('admin.system-logs.*') ? 'text-amber-400' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>System Logs (Jejak)</span>
+                </a>
                 @endif
 
                 <span class="px-4 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-2 mt-6">KEAMANAN AKUN</span>
@@ -181,6 +189,78 @@
         </main>
     </div>
 
+    <!-- SweetAlert2 untuk Flash Messages Interaktif -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Konfigurasi Toast untuk pesan sukses ringan
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+
+            // Tangkap session sukses (biasanya untuk aksi simpan/ubah)
+            @if(session('success') || session('status'))
+                Toast.fire({
+                    icon: 'success',
+                    title: '{{ session("success") ?? session("status") }}'
+                });
+            @endif
+
+            // Tangkap session error (biasanya untuk akses ditolak atau gagal proses krusial)
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terdapat Masalah!',
+                    text: '{{ session("error") }}',
+                    confirmButtonColor: '#0f2b5c',
+                    shape: 'border-radius: 1rem;'
+                });
+            @endif
+
+            // Tangkap semua validation error sekaligus (misal lupa isi form)
+            @if($errors->any())
+                let errorHtml = '<ul style="text-align: left; font-size: 0.875rem; color: #ef4444; list-style-type: disc; padding-left: 1.5rem;">';
+                @foreach ($errors->all() as $error)
+                    errorHtml += '<li style="margin-bottom: 0.25rem;">{{ $error }}</li>';
+                @endforeach
+                errorHtml += '</ul>';
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validasi Gagal',
+                    html: errorHtml,
+                    confirmButtonColor: '#0f2b5c',
+                });
+            @endif
+            
+            // Helper Fungsi Global untuk konfirmasi Hapus (Bisa dipakai di tombol hapus mana saja)
+            window.confirmDelete = function(formId) {
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: "Data yang dihapus tidak dapat dikembalikan!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById(formId).submit();
+                    }
+                })
+            }
+        });
+    </script>
 </body>
 
 </html>

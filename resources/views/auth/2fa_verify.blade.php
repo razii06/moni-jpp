@@ -58,9 +58,7 @@
                         <input type="text" name="otp" required autofocus maxlength="6" autocomplete="one-time-code"
                             class="w-full px-4 py-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-center text-3xl tracking-[0.5em] font-mono font-black focus:outline-none focus:border-[#2653e0] focus:ring-2 focus:ring-blue-100 transition-all shadow-inner"
                             placeholder="••••••">
-                        @if ($errors->has('otp'))
-                            <p class="mt-2 text-sm text-center text-rose-500 font-bold">{{ $errors->first('otp') }}</p>
-                        @endif
+
                     </div>
 
                     <!-- Submit Button -->
@@ -75,5 +73,21 @@
             </div>
         </div>
     </div>
+
+    <!-- SweetAlert2 untuk Notifikasi Error 2FA -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if ($errors->has('otp') || session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Verifikasi Gagal!',
+                    text: '{{ $errors->first("otp") ?? session("error") ?? "Kode OTP yang Anda masukkan salah atau sudah kedaluwarsa." }}',
+                    confirmButtonColor: '#ef4444',
+                    confirmButtonText: 'Coba Lagi'
+                });
+            @endif
+        });
+    </script>
 </body>
 </html>

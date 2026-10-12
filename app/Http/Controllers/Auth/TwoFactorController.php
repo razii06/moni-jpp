@@ -97,6 +97,13 @@ class TwoFactorController extends Controller
             $request->session()->forget('2fa_setup_secret');
             $request->session()->put('2fa_passed', true);
             
+            \App\Models\SystemLog::create([
+                'user_id'     => auth()->id(),
+                'action'      => 'ENABLE 2FA',
+                'description' => "Mengaktifkan Two-Factor Authentication (2FA).",
+                'ip_address'  => request()->ip()
+            ]);
+            
             return back()->with('success', 'Two-Factor Authentication berhasil diaktifkan!');
         }
 
@@ -110,6 +117,13 @@ class TwoFactorController extends Controller
         $user->google2fa_secret = null;
         $user->save();
         $request->session()->forget('2fa_passed');
+
+        \App\Models\SystemLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => 'DISABLE 2FA',
+            'description' => "Menonaktifkan Two-Factor Authentication (2FA).",
+            'ip_address'  => request()->ip()
+        ]);
 
         return back()->with('success', 'Two-Factor Authentication telah dinonaktifkan.');
     }

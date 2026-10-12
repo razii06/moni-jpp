@@ -532,11 +532,20 @@ class JobPackageController extends Controller
 
     private function logActivity(JobPackage $jobPackage, string $action, string $description): void
     {
+        // 1. Catat ke Local Activity Log (Detail Job Package)
         ActivityLog::create([
             'job_package_id' => $jobPackage->id,
             'user_id'        => auth()->id(),
             'action'         => $action,
             'description'    => $description,
+        ]);
+
+        // 2. Catat ke Global System Log
+        \App\Models\SystemLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => strtoupper($action) . ' JOB PACKAGE',
+            'description' => "Pada Project '{$jobPackage->job_package}': {$description}",
+            'ip_address'  => request()->ip()
         ]);
     }
 

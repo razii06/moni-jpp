@@ -34,6 +34,13 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
+        \App\Models\SystemLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => 'UPDATE PROFILE',
+            'description' => "Memperbarui informasi profil.",
+            'ip_address'  => request()->ip()
+        ]);
+
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
@@ -47,10 +54,20 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+        $deletedName = $user->name;
+        $deletedEmail = $user->email;
+        $deletedId = $user->id;
 
         Auth::logout();
 
         $user->delete();
+
+        \App\Models\SystemLog::create([
+            'user_id'     => null, // Akun sudah dihapus, atau bisa simpan ID lama
+            'action'      => 'DELETE ACCOUNT',
+            'description' => "Pengguna menghapus akunnya sendiri: {$deletedName} ({$deletedEmail}).",
+            'ip_address'  => request()->ip()
+        ]);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

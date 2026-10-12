@@ -95,7 +95,14 @@ class DokumentasiController extends Controller
             }
         }
 
-        Dokumentasi::create($data);
+        $dok = Dokumentasi::create($data);
+
+        \App\Models\SystemLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => 'CREATE DOKUMENTASI',
+            'description' => "Menambahkan dokumentasi baru: {$dok->judul} ({$dok->kategori}).",
+            'ip_address'  => request()->ip()
+        ]);
 
         return back()->with('success', 'Dokumentasi berhasil diunggah.');
     }
@@ -131,7 +138,15 @@ class DokumentasiController extends Controller
             }
         }
 
+        $judul = $dokumentasi->judul;
         $dokumentasi->delete();
+
+        \App\Models\SystemLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => 'DELETE DOKUMENTASI',
+            'description' => "Menghapus dokumentasi: {$judul}.",
+            'ip_address'  => request()->ip()
+        ]);
 
         return back()->with('success', 'Dokumentasi dan file berhasil dihapus.');
     }

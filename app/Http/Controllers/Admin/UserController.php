@@ -31,12 +31,19 @@ class UserController extends Controller
             'role'     => ['required', 'in:admin,pic_jpp,super_vc,staff'],
         ]);
 
-        User::create([
+        $newUser = User::create([
             'name'     => $request->name,
             'username' => strtolower($request->username),
             'email'    => $request->email,
             'password' => Hash::make($request->password),
             'role'     => $request->role,
+        ]);
+
+        \App\Models\SystemLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => 'CREATE USER',
+            'description' => "Menambahkan akun baru: {$newUser->name} ({$newUser->email}) sebagai {$newUser->role}.",
+            'ip_address'  => request()->ip()
         ]);
 
         return redirect()->back()->with('success', 'Akun berhasil dibuat!');
@@ -53,7 +60,17 @@ class UserController extends Controller
             return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri!');
         }
 
+        $deletedName = $user->name;
+        $deletedEmail = $user->email;
+        
         $user->delete();
+
+        \App\Models\SystemLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => 'DELETE USER',
+            'description' => "Menghapus akun: {$deletedName} ({$deletedEmail}).",
+            'ip_address'  => request()->ip()
+        ]);
 
         return back()->with('success', 'Pengguna berhasil dihapus.');
     }
