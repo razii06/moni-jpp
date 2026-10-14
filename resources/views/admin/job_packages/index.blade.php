@@ -189,18 +189,18 @@
                 <!-- Table Content -->
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm whitespace-nowrap min-w-[1100px]">
-                        <thead class="bg-slate-50 text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
+                        <thead class="bg-slate-100/70 text-slate-500 text-[11px] font-extrabold uppercase tracking-wider border-b-2 border-slate-200">
                             <tr>
-                                <th class="px-4 py-3 w-10 text-center">NO.</th>
-                                <th class="px-4 py-3 min-w-[280px]">JOB PACKAGE (SM01)</th>
-                                <th class="px-4 py-3 min-w-[200px]">NO. SERVICE ORDER & NOTIFIKASI</th>
-                                <th class="px-4 py-3 min-w-[140px]">OWNER ESTIMATE</th>
-                                <th class="px-4 py-3 min-w-[140px]">NO. PO</th>
-                                <th class="px-4 py-3 min-w-[180px]">STATUS & PROGRES</th>
-                                <th class="px-4 py-3 text-center min-w-[180px]">AKSI</th>
+                                <th class="px-4 py-3.5 w-12 text-center">NO.</th>
+                                <th class="px-4 py-3.5 min-w-[280px]">JOB PACKAGE (SM01)</th>
+                                <th class="px-4 py-3.5 min-w-[200px]">NO. SERVICE ORDER & NOTIFIKASI</th>
+                                <th class="px-4 py-3.5 min-w-[140px]">OWNER ESTIMATE</th>
+                                <th class="px-4 py-3.5 min-w-[140px]">NO. PO</th>
+                                <th class="px-4 py-3.5 min-w-[180px]">STATUS & PROGRES</th>
+                                <th class="px-4 py-3.5 text-center min-w-[180px]">AKSI</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-slate-600">
+                        <tbody class="divide-y divide-slate-200 text-slate-600">
                             @forelse($board['items'] as $jp)
                                 @php
                                     // Hitung Progres
@@ -229,10 +229,12 @@
                                     $firstPo = $pos ? $pos->first() : null;
                                     $extraPoCount = $pos ? ($pos->count() - 1) : 0;
                                 @endphp
-                                <tr x-data="{ openDetailModal: false }" class="hover:bg-slate-50/80 transition-colors">
+                                <tr x-data="{ openDetailModal: false }" class="even:bg-slate-50/50 hover:bg-blue-50/40 transition-colors">
                                     <!-- NO -->
-                                    <td class="px-4 py-4 font-bold text-slate-400 text-center align-top text-xs">
-                                        {{ method_exists($board['items'], 'firstItem') ? ($board['items']->firstItem() + $loop->index) : ($loop->index + 1) }}
+                                    <td class="px-4 py-4 text-center align-top">
+                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-xs shadow-2xs">
+                                            {{ method_exists($board['items'], 'firstItem') ? ($board['items']->firstItem() + $loop->index) : ($loop->index + 1) }}
+                                        </span>
                                     </td>
 
                                     <!-- KOLOM 1: JOB Package (SM01) -->

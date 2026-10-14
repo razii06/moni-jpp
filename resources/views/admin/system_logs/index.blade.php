@@ -1,91 +1,562 @@
 <x-admin-layout>
-    <x-slot name="title">Global System Logs</x-slot>
+    <x-slot name="title">Audit Log — Admin</x-slot>
 
-    <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-            <h2 class="text-2xl font-black text-slate-800 tracking-tight">System Logs (Jejak Audit)</h2>
-            <p class="text-sm text-slate-500 mt-1 font-medium">Rekaman seluruh aktivitas yang terjadi di dalam sistem secara real-time.</p>
+    <div x-data="systemLogWatcher()" @keydown.escape.window="detailModalOpen = false; openFilterDrawer = false" class="space-y-4">
+        <!-- Top Bar Header & Breadcrumbs (Persis Referensi Acme) -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-1 pb-1">
+            <div>
+                <!-- Breadcrumbs (Persis Acme: Admin > Audit Log) -->
+                <div class="flex items-center gap-1.5 text-sm font-semibold">
+                    <span class="text-blue-600 hover:text-blue-700 cursor-pointer">Admin</span>
+                    <span class="text-slate-400 font-normal">&gt;</span>
+                    <span class="text-slate-900 font-bold">Audit Log</span>
+                </div>
+            </div>
+
+            <!-- Top Right Action Controls -->
+            <div class="flex flex-wrap items-center gap-2.5 self-stretch sm:self-auto justify-end">
+                <!-- Status Terakhir Diperbarui -->
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200/90 rounded-md text-xs text-slate-500 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                    <span class="text-[11px] text-slate-400">Update:</span>
+                    <span class="font-mono font-medium text-slate-700" x-text="lastUpdatedTime">{{ now()->format('H:i:s') }}</span>
+                </div>
+
+                <!-- Tombol Toggle Auto-Refresh / Live Mode -->
+                <button type="button"
+                        @click="toggleAutoRefresh()"
+                        :class="autoRefresh 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300 ring-1 ring-emerald-400/30' 
+                            : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200/90'"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors shadow-2xs cursor-pointer select-none">
+                    <template x-if="autoRefresh">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                    </template>
+                    <template x-if="!autoRefresh">
+                        <span class="inline-block w-2 h-2 rounded-full bg-slate-300"></span>
+                    </template>
+                    <span x-show="!autoRefresh">Auto-Refresh</span>
+                    <span x-show="autoRefresh" class="font-semibold" style="display: none;">
+                        LIVE (<span x-text="countdown + 's'">30s</span>)
+                    </span>
+                </button>
+
+                <!-- Tombol Trigger Slide-Over Filter Panel (Persis Desain 2) -->
+                <button type="button"
+                        @click="openFilterDrawer = true"
+                        :class="activeFilterCount > 0 
+                            ? 'bg-blue-50 text-blue-700 border-blue-300 ring-2 ring-blue-500/20 font-semibold' 
+                            : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 font-medium'"
+                        class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md border text-xs shadow-2xs transition-colors cursor-pointer select-none group">
+                    <svg class="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    <span>Filter</span>
+                    
+                    <template x-if="activeFilterCount > 0">
+                        <span class="inline-flex items-center justify-center px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-600 text-white" x-text="activeFilterCount"></span>
+                    </template>
+                </button>
+            </div>
         </div>
-    </div>
 
-    <!-- Tabel Data -->
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-widest text-slate-500 font-bold">
-                        <th class="px-6 py-4">Waktu Kejadian</th>
-                        <th class="px-6 py-4">Pelaku (User)</th>
-                        <th class="px-6 py-4">Aksi</th>
-                        <th class="px-6 py-4">Deskripsi Aktivitas</th>
-                        <th class="px-6 py-4">IP Address</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    @forelse($logs as $log)
-                    <tr class="hover:bg-slate-50/80 transition-colors group">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="text-xs font-bold text-slate-600">
-                                {{ $log->created_at->format('d M Y') }}
-                            </span>
-                            <br>
-                            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
-                                {{ $log->created_at->format('H:i:s') }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-[#0f2b5c] flex items-center justify-center font-bold text-xs shrink-0">
-                                    {{ $log->user ? strtoupper(substr($log->user->name, 0, 1)) : '?' }}
+        <!-- Active Filter Indicator Ribbon (Jika Ada Filter Aktif) -->
+        <template x-if="activeFilterCount > 0">
+            <div class="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                <span class="font-semibold text-slate-600 flex items-center gap-1.5 shrink-0">
+                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    Filter:
+                </span>
+
+                <!-- Search Chip -->
+                <template x-if="filters.search">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white text-slate-700 border border-slate-200 shadow-2xs">
+                        <span class="text-slate-400">Kata kunci:</span>
+                        <strong x-text="filters.search"></strong>
+                        <button type="button" @click="filters.search = ''; applyFilters()" class="text-slate-400 hover:text-rose-600 ml-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </span>
+                </template>
+
+                <!-- Category Chip -->
+                <template x-if="filters.category && filters.category !== 'semua'">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white text-slate-700 border border-slate-200 shadow-2xs">
+                        <span class="text-slate-400">Tipe:</span>
+                        <strong x-text="getCategoryLabel(filters.category)"></strong>
+                        <button type="button" @click="filters.category = 'semua'; applyFilters()" class="text-slate-400 hover:text-rose-600 ml-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </span>
+                </template>
+
+                <!-- User Chip -->
+                <template x-if="filters.user_id && filters.user_id !== 'semua'">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white text-slate-700 border border-slate-200 shadow-2xs">
+                        <span class="text-slate-400">User:</span>
+                        <strong x-text="getUserName(filters.user_id)"></strong>
+                        <button type="button" @click="filters.user_id = 'semua'; applyFilters()" class="text-slate-400 hover:text-rose-600 ml-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </span>
+                </template>
+
+                <!-- Date Range Chip -->
+                <template x-if="filters.date_range && filters.date_range !== 'semua'">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white text-slate-700 border border-slate-200 shadow-2xs">
+                        <span class="text-slate-400">Waktu:</span>
+                        <strong x-text="getDateRangeLabel(filters.date_range)"></strong>
+                        <button type="button" @click="filters.date_range = 'semua'; filters.date_from = ''; filters.date_to = ''; applyFilters()" class="text-slate-400 hover:text-rose-600 ml-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </span>
+                </template>
+
+                <button type="button" 
+                        @click="resetFilters()" 
+                        class="text-xs font-semibold text-blue-600 hover:text-blue-800 ml-auto cursor-pointer">
+                    Clear all
+                </button>
+            </div>
+        </template>
+
+        <!-- Tabel Data Wrapper (Dapat Diperbarui Dinamis Tanpa Kedip) -->
+        <div class="relative">
+            <!-- Progress Line Indicator saat Loading -->
+            <div x-show="isLoading" 
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="absolute top-0 left-0 right-0 h-0.5 bg-blue-100 overflow-hidden rounded-t-xl z-10"
+                 style="display: none;">
+                <div class="h-full bg-blue-600 animate-pulse w-full"></div>
+            </div>
+
+            <div id="logs-container" 
+                 x-ref="tableContainer" 
+                 :class="isLoading ? 'opacity-60 pointer-events-none transition-opacity duration-200' : 'opacity-100 transition-opacity duration-200'">
+                @include('admin.system_logs._table')
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE-OVER (DRAWER) FILTER PANEL (PERSIS SEPERTI DESAIN 2)    -->
+        <!-- ============================================================ -->
+        <template x-teleport="body">
+            <div x-show="openFilterDrawer" 
+                 x-cloak
+                 class="relative z-[9999]">
+                
+                <!-- Backdrop Overlay -->
+                <div x-show="openFilterDrawer"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     @click="openFilterDrawer = false"
+                     class="fixed inset-0 bg-slate-900/30 backdrop-blur-2xs transition-opacity"></div>
+
+                <!-- Slide-Over Drawer Container -->
+                <div class="fixed inset-0 overflow-hidden pointer-events-none">
+                    <div class="absolute inset-0 overflow-hidden">
+                        <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+                            
+                            <!-- Panel Content (Persis Acme Screenshot 2) -->
+                            <div x-show="openFilterDrawer"
+                                 x-transition:enter="transform transition ease-out duration-300"
+                                 x-transition:enter-start="translate-x-full"
+                                 x-transition:enter-end="translate-x-0"
+                                 x-transition:leave="transform transition ease-in duration-200"
+                                 x-transition:leave-start="translate-x-0"
+                                 x-transition:leave-end="translate-x-full"
+                                 class="pointer-events-auto w-screen max-w-sm bg-white shadow-xl flex flex-col">
+                                
+                                <!-- Drawer Header (Persis Acme: Title, Clear all, Close X) -->
+                                <div class="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between">
+                                    <h3 class="text-base font-semibold text-slate-800">Filter</h3>
+                                    <div class="flex items-center gap-4">
+                                        <button type="button" 
+                                                @click="resetFilters()" 
+                                                class="text-xs font-medium text-slate-500 hover:text-blue-600 transition-colors cursor-pointer">
+                                            Clear all
+                                        </button>
+                                        <button type="button" 
+                                                @click="openFilterDrawer = false" 
+                                                class="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800">{{ $log->user ? $log->user->name : 'Sistem / Guest' }}</p>
-                                    <p class="text-xs text-slate-400">{{ $log->user ? $log->user->email : '-' }}</p>
+
+                                <!-- Drawer Form Fields (Persis Acme Screenshot 2) -->
+                                <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4 text-sm">
+                                    <!-- 1. Date Range Filter -->
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-medium text-slate-600">
+                                            Date Range
+                                        </label>
+                                        <select x-model="filters.date_range" class="w-full text-xs font-normal rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 py-2 text-slate-700 bg-white">
+                                            <option value="semua">Select Date</option>
+                                            <option value="today">Hari Ini</option>
+                                            <option value="yesterday">Kemarin</option>
+                                            <option value="7_days">7 Hari Terakhir</option>
+                                            <option value="30_days">30 Hari Terakhir</option>
+                                            <option value="this_month">Bulan Ini</option>
+                                            <option value="custom">Pilih Rentang Tanggal...</option>
+                                        </select>
+
+                                        <!-- Custom Date Pickers -->
+                                        <div x-show="filters.date_range === 'custom'" class="pt-2 grid grid-cols-2 gap-2" style="display: none;">
+                                            <div>
+                                                <span class="text-[10px] text-slate-400 block mb-1">From:</span>
+                                                <input type="date" x-model="filters.date_from" class="w-full text-xs rounded-lg border-slate-300 focus:border-blue-500 py-1.5 text-slate-700">
+                                            </div>
+                                            <div>
+                                                <span class="text-[10px] text-slate-400 block mb-1">To:</span>
+                                                <input type="date" x-model="filters.date_to" class="w-full text-xs rounded-lg border-slate-300 focus:border-blue-500 py-1.5 text-slate-700">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. What changed? Filter (Persis Acme Screenshot 2) -->
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-medium text-slate-600">
+                                            What changed?
+                                        </label>
+                                        <select x-model="filters.category" class="w-full text-xs font-normal rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 py-2 text-slate-700 bg-white">
+                                            <option value="semua">Select Type</option>
+                                            <option value="job_package">Job Package</option>
+                                            <option value="document">Dokumen Berkas</option>
+                                            <option value="auth">Account</option>
+                                            <option value="security">Security</option>
+                                            <option value="user_management">Agent</option>
+                                            <option value="documentation">Change</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- 3. Performed by Filter -->
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-medium text-slate-600">
+                                            Performed by
+                                        </label>
+                                        <select x-model="filters.user_id" class="w-full text-xs font-normal rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 py-2 text-slate-700 bg-white">
+                                            <option value="semua">Select User</option>
+                                            @foreach($users as $user)
+                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <!-- 4. Search Keyword -->
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-medium text-slate-600">
+                                            Search
+                                        </label>
+                                        <div class="relative">
+                                            <input type="text" 
+                                                   x-model="filters.search" 
+                                                   placeholder="Search logs..."
+                                                   class="w-full text-xs font-normal rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 pl-8 py-2 text-slate-700">
+                                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Drawer Footer (Persis Acme Screenshot 2: Cancel & Apply) -->
+                                <div class="p-4 border-t border-slate-100 flex items-center justify-end gap-2.5 bg-slate-50/50">
+                                    <button type="button" 
+                                            @click="openFilterDrawer = false" 
+                                            class="px-4 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 transition-colors cursor-pointer">
+                                        Cancel
+                                    </button>
+                                    <button type="button" 
+                                            @click="applyFilters()" 
+                                            class="px-5 py-2 rounded-md bg-[#1e293b] hover:bg-[#0f172a] text-white text-xs font-medium shadow-xs transition-colors cursor-pointer">
+                                        Apply
+                                    </button>
                                 </div>
                             </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @php
-                                $color = 'bg-slate-100 text-slate-600 border-slate-200';
-                                if(strtolower($log->action) == 'login') $color = 'bg-emerald-50 text-emerald-600 border-emerald-200';
-                                if(strtolower($log->action) == 'logout') $color = 'bg-amber-50 text-amber-600 border-amber-200';
-                            @endphp
-                            <span class="px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider rounded-md border {{ $color }}">
-                                {{ $log->action }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <p class="text-sm font-semibold text-slate-700 line-clamp-2">
-                                {{ $log->description ?? '-' }}
-                            </p>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="text-xs font-mono text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                                {{ $log->ip_address ?? 'Unknown' }}
-                            </span>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="5" class="px-6 py-12 text-center">
-                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 mb-4">
-                                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- ============================================================ -->
+        <!-- DETAIL MODAL (VIEW MORE TRIGGER DARI DESAIN 2)               -->
+        <!-- ============================================================ -->
+        <template x-teleport="body">
+            <div x-show="detailModalOpen" 
+                 x-cloak
+                 class="fixed inset-0 z-[9999] overflow-y-auto">
+                
+                <div class="flex items-center justify-center min-h-screen p-4 text-center">
+                    <!-- Modal Backdrop -->
+                    <div x-show="detailModalOpen"
+                         x-transition:enter="ease-out duration-250"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         @click="detailModalOpen = false"
+                         class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"></div>
+
+                    <!-- Modal Dialog (Selalu Tepat di Tengah Layar Viewport Pengguna) -->
+                    <div x-show="detailModalOpen"
+                         x-transition:enter="ease-out duration-250"
+                         x-transition:enter-start="opacity-0 translate-y-3 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-3 scale-95"
+                         class="relative bg-white rounded-2xl max-w-lg w-full p-6 text-left shadow-2xl border border-slate-200 overflow-hidden z-10 space-y-4 my-8">
+                        
+                        <!-- Header -->
+                        <div class="flex items-start justify-between pb-3.5 border-b border-slate-100">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-mono font-medium text-slate-400" x-text="'Ref: #' + (selectedLog?.id ?? '')"></span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600" x-text="selectedLog?.category"></span>
+                                </div>
+                                <h3 class="text-base font-bold text-slate-800 mt-1" x-text="selectedLog?.action_pill ?? 'Detail Log'"></h3>
                             </div>
-                            <h3 class="text-slate-500 font-bold text-sm">Belum ada aktivitas terekam.</h3>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- Pagination -->
-        @if($logs->hasPages())
-        <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-            {{ $logs->links() }}
-        </div>
-        @endif
+                            <button type="button" @click="detailModalOpen = false" class="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="space-y-3 text-xs">
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-0.5">
+                                <span class="text-[10px] uppercase font-semibold text-slate-400">Time</span>
+                                <p class="font-medium text-slate-800" x-text="selectedLog?.time_full"></p>
+                            </div>
+
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-0.5">
+                                <span class="text-[10px] uppercase font-semibold text-slate-400">Performed by</span>
+                                <p class="font-semibold text-slate-800" x-text="selectedLog?.user_name"></p>
+                                <p class="text-slate-500 font-mono" x-text="'IP Address: ' + (selectedLog?.ip_address ?? '-')"></p>
+                            </div>
+
+                            <template x-if="selectedLog?.project">
+                                <div class="bg-blue-50/40 p-3 rounded-lg border border-blue-100 space-y-0.5">
+                                    <span class="text-[10px] uppercase font-semibold text-blue-600">What changed?</span>
+                                    <p class="font-semibold text-slate-800 leading-snug" x-text="selectedLog?.project"></p>
+                                </div>
+                            </template>
+
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-0.5">
+                                <span class="text-[10px] uppercase font-semibold text-slate-400">Details</span>
+                                <p class="font-normal text-slate-700 leading-relaxed whitespace-pre-line" x-text="selectedLog?.raw_description"></p>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="pt-3 border-t border-slate-100 flex justify-end">
+                            <button type="button" @click="detailModalOpen = false" class="px-4 py-2 rounded-md bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors cursor-pointer">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
+
+    <!-- Script Reaktivitas Alpine.js (State, AJAX Filter & Drawer Controller) -->
+    <script>
+        function systemLogWatcher() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userLookup = {
+                @foreach($users as $u)
+                    '{{ $u->id }}': '{{ addslashes($u->name) }}',
+                @endforeach
+            };
+
+            return {
+                isLoading: false,
+                lastUpdatedTime: '{{ now()->format("H:i:s") }}',
+                totalLogs: {{ $logs->total() }},
+                justUpdated: false,
+                autoRefresh: false,
+                countdown: 30,
+                countdownTimer: null,
+
+                // State Drawer & Modal
+                openFilterDrawer: false,
+                detailModalOpen: false,
+                selectedLog: null,
+
+                init() {
+                    this.$watch('detailModalOpen', val => {
+                        document.body.classList.toggle('overflow-hidden', val || this.openFilterDrawer);
+                    });
+                    this.$watch('openFilterDrawer', val => {
+                        document.body.classList.toggle('overflow-hidden', val || this.detailModalOpen);
+                    });
+                },
+
+                // Filter Model (Diinisialisasi dari URL saat ini)
+                filters: {
+                    search: urlParams.get('search') || '',
+                    category: urlParams.get('category') || 'semua',
+                    user_id: urlParams.get('user_id') || 'semua',
+                    date_range: urlParams.get('date_range') || 'semua',
+                    date_from: urlParams.get('date_from') || '',
+                    date_to: urlParams.get('date_to') || '',
+                },
+
+                get activeFilterCount() {
+                    let count = 0;
+                    if (this.filters.search && this.filters.search.trim() !== '') count++;
+                    if (this.filters.category && this.filters.category !== 'semua') count++;
+                    if (this.filters.user_id && this.filters.user_id !== 'semua') count++;
+                    if (this.filters.date_range && this.filters.date_range !== 'semua') count++;
+                    if (this.filters.date_from || this.filters.date_to) count++;
+                    return count;
+                },
+
+                getCategoryLabel(cat) {
+                    const map = {
+                        'job_package': 'Job Package',
+                        'document': 'Dokumen Berkas',
+                        'auth': 'Account',
+                        'security': 'Security',
+                        'user_management': 'Agent',
+                        'documentation': 'Change'
+                    };
+                    return map[cat] || cat;
+                },
+
+                getUserName(id) {
+                    return userLookup[id] || ('User #' + id);
+                },
+
+                getDateRangeLabel(range) {
+                    const map = {
+                        'today': 'Hari Ini',
+                        'yesterday': 'Kemarin',
+                        '7_days': '7 Hari Terakhir',
+                        '30_days': '30 Hari Terakhir',
+                        'this_month': 'Bulan Ini',
+                        'custom': 'Kustom'
+                    };
+                    return map[range] || range;
+                },
+
+                async applyFilters() {
+                    this.openFilterDrawer = false;
+
+                    const params = new URLSearchParams();
+                    if (this.filters.search) params.set('search', this.filters.search.trim());
+                    if (this.filters.category && this.filters.category !== 'semua') params.set('category', this.filters.category);
+                    if (this.filters.user_id && this.filters.user_id !== 'semua') params.set('user_id', this.filters.user_id);
+                    if (this.filters.date_range && this.filters.date_range !== 'semua') params.set('date_range', this.filters.date_range);
+                    if (this.filters.date_from) params.set('date_from', this.filters.date_from);
+                    if (this.filters.date_to) params.set('date_to', this.filters.date_to);
+
+                    const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+                    window.history.pushState({}, '', newUrl);
+
+                    await this.refreshLogs(true);
+                },
+
+                resetFilters() {
+                    this.filters.search = '';
+                    this.filters.category = 'semua';
+                    this.filters.user_id = 'semua';
+                    this.filters.date_range = 'semua';
+                    this.filters.date_from = '';
+                    this.filters.date_to = '';
+                    this.applyFilters();
+                },
+
+                openDetailModal(logData) {
+                    this.selectedLog = logData;
+                    this.detailModalOpen = true;
+                },
+
+                async refreshLogs(manual = true) {
+                    if (this.isLoading) return;
+                    this.isLoading = true;
+
+                    try {
+                        const response = await fetch(window.location.href, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) throw new Error('Gagal memuat log');
+
+                        const data = await response.json();
+                        if (data && data.html) {
+                            this.$refs.tableContainer.innerHTML = data.html;
+                            this.lastUpdatedTime = data.timestamp;
+                            this.totalLogs = data.total;
+                            
+                            this.justUpdated = true;
+                            setTimeout(() => {
+                                this.justUpdated = false;
+                            }, 2500);
+                        }
+                    } catch (err) {
+                        console.error('Terjadi kendala saat menyegarkan data log:', err);
+                    } finally {
+                        this.isLoading = false;
+                        if (this.autoRefresh) {
+                            this.countdown = 30;
+                        }
+                    }
+                },
+
+                toggleAutoRefresh() {
+                    this.autoRefresh = !this.autoRefresh;
+                    if (this.autoRefresh) {
+                        this.startAutoRefresh();
+                    } else {
+                        this.stopAutoRefresh();
+                    }
+                },
+
+                startAutoRefresh() {
+                    this.countdown = 30;
+                    if (this.countdownTimer) clearInterval(this.countdownTimer);
+                    this.countdownTimer = setInterval(() => {
+                        if (this.countdown > 1) {
+                            this.countdown--;
+                        } else {
+                            this.countdown = 30;
+                            this.refreshLogs(false);
+                        }
+                    }, 1000);
+                },
+
+                stopAutoRefresh() {
+                    if (this.countdownTimer) {
+                        clearInterval(this.countdownTimer);
+                        this.countdownTimer = null;
+                    }
+                    this.countdown = 30;
+                }
+            }
+        }
+    </script>
 </x-admin-layout>

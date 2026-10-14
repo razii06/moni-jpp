@@ -9,21 +9,41 @@
     <!-- Kita matikan sementara Vite-nya untuk membypass terminal -->
     <!-- @vite(['resources/css/app.css', 'resources/js/app.js']) -->
     
+    <!-- Google Fonts: Inter (Standar Modern SaaS UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <!-- ApexCharts CDN -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- Animasi Mulus -->
+    <!-- Animasi Mulus & Font Setting -->
     <style>
+        body, input, select, textarea, button {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         @keyframes adminPagePop {
-            0% { opacity: 0; transform: scale(0.95) translateY(16px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: none; }
         }
         .admin-pop-animate {
-            animation: adminPagePop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            will-change: transform, opacity;
+            animation: adminPagePop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 </head>
@@ -178,13 +198,8 @@
 
         <!-- Main Content Area dengan Animasi Masuk -->
         <main class="p-4 sm:p-6 lg:p-8 flex-1">
-            <div x-data="{ tampil: false }" 
-                x-init="setTimeout(() => tampil = true, 50)"
-                class="transform transition-all duration-700 ease-out"
-                :class="tampil ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'">
-                
+            <div class="admin-pop-animate">
                 {{ $slot }}
-                
             </div>
         </main>
     </div>
@@ -226,7 +241,7 @@
             @endif
 
             // Tangkap semua validation error sekaligus (misal lupa isi form)
-            @if($errors->any())
+            @if(isset($errors) && $errors->any())
                 let errorHtml = '<ul style="text-align: left; font-size: 0.875rem; color: #ef4444; list-style-type: disc; padding-left: 1.5rem;">';
                 @foreach ($errors->all() as $error)
                     errorHtml += '<li style="margin-bottom: 0.25rem;">{{ $error }}</li>';
