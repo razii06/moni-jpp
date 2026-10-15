@@ -7,9 +7,11 @@
     
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .login-feedback { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; background: rgba(15,43,92,.94); backdrop-filter: blur(10px); }
         .login-feedback.is-visible { display: flex; animation: feedbackIn .25s ease both; }
         .feedback-content { display:flex; flex-direction:column; align-items:center; gap:12px; color:#fff; text-align:center; }
@@ -36,7 +38,17 @@
     </div>
 
     <!-- Latar Belakang Luar: Gradasi abu-abu kebiruan untuk menonjolkan kartu putih -->
-    <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-100 via-[#f0f4f8] to-slate-200">
+    <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-100 via-[#f0f4f8] to-slate-200 relative">
+        
+        <!-- Tombol Kembali ke Beranda Melayang (Floating Back Button) -->
+        <a href="{{ route('home') }}" 
+           title="Kembali ke Beranda"
+           class="fixed top-4 left-4 sm:top-6 sm:left-6 z-40 inline-flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white/90 hover:bg-white text-slate-600 hover:text-[#0f2b5c] border border-slate-200/90 shadow-sm hover:shadow-md backdrop-blur-md transition-all duration-200 group text-xs font-bold active:scale-95">
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-[#0f2b5c] group-hover:-translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            <span>Kembali ke Beranda</span>
+        </a>
         
         <!-- Kartu Utama Melayang (Floating Card) dengan shadow elegan -->
         <div class="w-full max-w-[1000px] bg-white rounded-[2.5rem] shadow-2xl shadow-blue-900/15 ring-1 ring-slate-900/5 flex flex-col md:flex-row overflow-hidden min-h-[580px]">
@@ -101,9 +113,10 @@
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
                             <label for="password" class="block text-sm font-bold text-slate-700">Password</label>
-                            @if (Route::has('password.request'))
+                            {{-- Tautan Lupa Kata Sandi disembunyikan sementara sesuai kebutuhan sistem internal --}}
+                            {{-- @if (Route::has('password.request'))
                             <a href="{{ route('password.request') }}" class="text-xs text-[#2653e0] hover:text-blue-800 font-bold transition">Lupa kata sandi?</a>
-                            @endif
+                            @endif --}}
                         </div>
                         <input id="password" type="password" name="password" required autocomplete="current-password"
                             class="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:border-[#2653e0] focus:ring-1 focus:ring-[#2653e0] transition-all font-medium"

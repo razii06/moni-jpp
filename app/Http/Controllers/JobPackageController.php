@@ -16,8 +16,15 @@ use Illuminate\Support\Facades\Storage;
 class JobPackageController extends Controller
 {
     private array $docFields = [
-        'doc_rab', 'doc_bak', 'doc_surat_permintaan',
-        'doc_surat_izin_prinsip', 'doc_tor', 'doc_bast',
+        'doc_surat_permintaan',
+        'doc_surat_izin_prinsip',
+        'doc_bak',
+        'doc_rab',
+        'doc_form_pbj',
+        'doc_tor',
+        'doc_bast',
+        'doc_laporan_pekerjaan',
+        'doc_pendukung_lainnya',
     ];
 
     public function index(Request $request)
@@ -456,20 +463,26 @@ class JobPackageController extends Controller
         }
 
         $updates = [];
+        $failedUploads = [];
         $isGoogleDrive = config('filesystems.default') === 'google';
         $drive = null;
         $parentFolderId = config('filesystems.disks.google.folder_jpp');
         $targetFolderId = null;
 
         if ($isGoogleDrive) {
-            $drive = new GoogleDriveService();
+            try {
+                $drive = new GoogleDriveService();
 
-            if ($jobPackage->google_drive_folder_id) {
-                $targetFolderId = $jobPackage->google_drive_folder_id;
-            } else {
-                $jobFolderName = $jobPackage->job_package ?? ('Job_' . $jobPackage->id);
-                $targetFolderId = $drive->getOrCreateJobFolder($parentFolderId, $jobFolderName);
-                $updates['google_drive_folder_id'] = $targetFolderId;
+                if ($jobPackage->google_drive_folder_id) {
+                    $targetFolderId = $jobPackage->google_drive_folder_id;
+                } else {
+                    $jobFolderName = $jobPackage->job_package ?? ('Job_' . $jobPackage->id);
+                    $targetFolderId = $drive->getOrCreateJobFolder($parentFolderId, $jobFolderName);
+                    $updates['google_drive_folder_id'] = $targetFolderId;
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Google Drive Folder Initialization Error: ' . $e->getMessage());
+                $failedUploads[] = 'Akses Google Drive bermasalah: ' . $e->getMessage();
             }
         }
 
@@ -484,17 +497,23 @@ class JobPackageController extends Controller
                 $currentFiles = is_array($jobPackage->$field) ? $jobPackage->$field : [];
 
                 foreach ($files as $file) {
-                    if ($file->isValid()) {
-                        $realPath = $file->getRealPath() ?: $file->getPathname();
+                    if (!$file->isValid()) {
+                        $failedUploads[] = "Berkas {$file->getClientOriginalName()} tidak valid (Error: {$file->getErrorMessage()})";
+                        continue;
+                    }
 
-                        if (empty($realPath) || !file_exists($realPath)) {
-                            continue;
-                        }
+                    $realPath = $file->getRealPath() ?: $file->getPathname();
 
-                        $originalName = preg_replace('/\s+/', '_', $file->getClientOriginalName());
-                        $filename = time() . '_' . uniqid() . '_' . $originalName;
+                    if (empty($realPath) || !file_exists($realPath)) {
+                        $failedUploads[] = "Berkas {$file->getClientOriginalName()} tidak dapat dibaca dari server sementara.";
+                        continue;
+                    }
 
-                        if ($isGoogleDrive && $drive) {
+                    $originalName = preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                    $filename = time() . '_' . uniqid() . '_' . $originalName;
+
+                    if ($isGoogleDrive && $drive && $targetFolderId) {
+                        try {
                             $uploadedFile = $drive->uploadFile(
                                 $filename,
                                 $file->getClientMimeType(),
@@ -505,9 +524,24 @@ class JobPackageController extends Controller
 
                             if ($uploadedFile && isset($uploadedFile->id)) {
                                 $currentFiles[] = $uploadedFile->webViewLink;
+                            } else {
+                                $failedUploads[] = "Berkas {$file->getClientOriginalName()} gagal diunggah ke Google Drive.";
                             }
-                        } else {
-                            $currentFiles[] = $file->storeAs('job_documents', $filename, 'public');
+                        } catch (\Throwable $e) {
+                            \Illuminate\Support\Facades\Log::error("Google Drive Upload Exception for {$filename}: " . $e->getMessage());
+                            $failedUploads[] = "Berkas {$file->getClientOriginalName()} gagal diunggah: " . $e->getMessage();
+                        }
+                    } else {
+                        try {
+                            $path = $file->storeAs('job_documents', $filename, 'public');
+                            if ($path) {
+                                $currentFiles[] = $path;
+                            } else {
+                                $failedUploads[] = "Berkas {$file->getClientOriginalName()} gagal disimpan ke penyimpanan lokal.";
+                            }
+                        } catch (\Throwable $e) {
+                            \Illuminate\Support\Facades\Log::error("Local Storage Upload Exception for {$filename}: " . $e->getMessage());
+                            $failedUploads[] = "Berkas {$file->getClientOriginalName()} gagal disimpan: " . $e->getMessage();
                         }
                     }
                 }
@@ -527,6 +561,10 @@ class JobPackageController extends Controller
                     'Dokumen diunggah secara Multiple: ' . implode(', ', $uploadedDocs) . '.'
                 );
             }
+        }
+
+        if (!empty($failedUploads)) {
+            session()->flash('warning', 'Beberapa berkas gagal diunggah: ' . implode('; ', $failedUploads));
         }
     }
 

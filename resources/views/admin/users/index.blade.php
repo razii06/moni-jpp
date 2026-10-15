@@ -138,7 +138,7 @@
                                     $roleName = 'PIC JPP';
                                     } elseif ($roleStr === 'super_vc') {
                                     $badgeClass = 'bg-purple-100 text-purple-800 border-purple-200';
-                                    $roleName = 'SUPERVISI';
+                                    $roleName = 'SUPERVISOR';
                                     }
                                     @endphp
                                     <span
@@ -151,8 +151,10 @@
                                 <td class="py-3.5 px-4 text-center">
                                     @if (auth()->id() !== $user->id)
                                     <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
-                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna {{ $user->name }}?');"
-                                        class="inline">
+                                        class="inline"
+                                        data-confirm-delete="Pengguna ini tidak akan dapat login lagi ke sistem Monitoring JPP."
+                                        data-confirm-title="Hapus Akun Pengguna?"
+                                        data-item-name="{{ $user->name }} ({{ $user->username }})">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"

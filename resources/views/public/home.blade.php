@@ -287,18 +287,18 @@
                                 <div class="space-y-2 text-xs">
                                     <div class="flex items-center gap-3">
                                         <span class="text-slate-400 w-28 shrink-0">Notifikasi</span> 
-                                        <span class="font-mono text-slate-600">{{ $jp->no_service_notifikasi ?: '-' }}</span>
+                                        <span class="tabular-nums font-semibold text-slate-700">{{ $jp->no_service_notifikasi ?: '-' }}</span>
                                     </div>
                                     <div class="flex items-center gap-3">
                                         <span class="text-slate-400 w-28 shrink-0">Order</span> 
-                                        <span class="font-mono font-semibold text-slate-700">{{ $jp->no_service_order ?: '-' }}</span>
+                                        <span class="tabular-nums font-bold text-slate-800">{{ $jp->no_service_order ?: '-' }}</span>
                                     </div>
                                 </div>
                             </td>
 
                             <!-- 3. OWNER ESTIMATE -->
                             {{-- <td class="py-5 px-4 whitespace-nowrap">
-                                <span class="font-bold font-mono text-slate-800">
+                                <span class="font-bold tabular-nums text-slate-800">
                                     Rp {{ number_format($jp->owner_estimate ?? 0, 0, ',', '.') }}
                                 </span>
                             </td> --}}
@@ -308,7 +308,7 @@
                                 <div class="text-xs">
                                     @if(isset($jp->pos) && $jp->pos->count() > 0)
                                         <div class="flex flex-wrap items-center gap-1">
-                                            <button @click="openPoModal = true" type="button" class="font-bold text-blue-900 hover:text-blue-700 hover:underline text-left">
+                                            <button @click="openPoModal = true" type="button" class="font-bold text-blue-900 hover:text-blue-700 hover:underline text-left tabular-nums">
                                                 {{ $jp->pos->first()->po_number ?? $jp->pos->first()->no_po }}
                                             </button>
                                             @if($jp->pos->count() > 1)
@@ -321,7 +321,7 @@
                                         <!-- Modal Alpine PO -->
                                         <template x-teleport="body">
                                             <div x-show="openPoModal" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-                                                <div @click.away="openPoModal = false" x-show="openPoModal" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden text-slate-800">
+                                                <div @click.away="openPoModal = false" @keydown.escape.window="openPoModal = false" x-show="openPoModal" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden text-slate-800">
                                                     <div class="px-5 py-4 text-white flex justify-between items-center" style="background-color: #0f2b5c;">
                                                         <div><h4 class="font-bold text-sm">Rincian PO</h4></div>
                                                         <button @click="openPoModal = false" type="button" class="text-white/70 hover:text-white font-bold px-2 rounded-lg transition-colors">✕</button>
@@ -339,8 +339,8 @@
                                                                 @foreach($jp->pos as $index => $po)
                                                                 <tr class="hover:bg-slate-50">
                                                                     <td class="py-2.5 px-3 text-center font-bold text-slate-400">-</td>
-                                                                    <td class="py-2.5 px-3 font-mono font-semibold text-amber-800">{{ $po->po_number ?? $po->no_po }}</td>
-                                                                    <td class="py-2.5 px-3 text-right font-bold font-mono">Rp {{ number_format($po->price ?? $po->harga ?? 0, 0, ',', '.') }}</td>
+                                                                    <td class="py-2.5 px-3 tabular-nums font-bold text-amber-800">{{ $po->po_number ?? $po->no_po }}</td>
+                                                                    <td class="py-2.5 px-3 text-right font-bold tabular-nums text-slate-800">Rp {{ number_format($po->price ?? $po->harga ?? 0, 0, ',', '.') }}</td>
                                                                 </tr>
                                                                 @endforeach
                                                             </tbody>
@@ -350,7 +350,7 @@
                                             </div>
                                         </template>
                                     @elseif($jp->no_po)
-                                        <span class="font-bold text-slate-800 font-mono">{{ $jp->no_po }}</span>
+                                        <span class="font-bold text-slate-800 tabular-nums">{{ $jp->no_po }}</span>
                                     @else
                                         <span class="text-slate-400">-</span>
                                     @endif
@@ -367,7 +367,7 @@
                                         <div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/80">
                                             <div class="h-full rounded-full {{ $barBg }} transition-all duration-700" style="width: {{ $valClamped }}%"></div>
                                         </div>
-                                        <span class="text-xs font-black text-blue-700 shrink-0 font-mono">
+                                        <span class="text-xs font-black text-blue-700 shrink-0 tabular-nums">
                                             {{ number_format($valClamped, 0) }}%
                                         </span>
                                     </div>

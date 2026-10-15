@@ -178,13 +178,14 @@
 
             <!-- Line Chart Container dengan Filter Tanggal -->
             <div class="animate-pop-up delay-500 lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm min-w-0">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
-                        <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
-                            Tren Pembuatan Job Package
+                        <h4 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                            <span>Beban Kerja Proyek Aktif</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Operasional</span>
                         </h4>
                         <p class="text-[11px] text-slate-400 font-medium mt-0.5">
-                            Periode: {{ \Carbon\Carbon::parse($startDate ?? now()->subWeeks(8))->translatedFormat('d M Y') }} – {{ \Carbon\Carbon::parse($endDate ?? now())->translatedFormat('d M Y') }}
+                            Periode: {{ \Carbon\Carbon::parse($startDate ?? now()->startOfYear())->translatedFormat('d M Y') }} – {{ \Carbon\Carbon::parse($endDate ?? now()->endOfYear())->translatedFormat('d M Y') }}
                         </p>
                     </div>
 
@@ -203,8 +204,8 @@
                         <!-- Mode Grouping: Harian, Mingguan, Bulanan -->
                         <select name="group_by" class="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer">
                             <option value="daily" {{ request('group_by') == 'daily' ? 'selected' : '' }}>Harian</option>
-                            <option value="weekly" {{ request('group_by', 'weekly') == 'weekly' ? 'selected' : '' }}>Mingguan</option>
-                            <option value="monthly" {{ request('group_by') == 'monthly' ? 'selected' : '' }}>Bulanan</option>
+                            <option value="weekly" {{ request('group_by') == 'weekly' ? 'selected' : '' }}>Mingguan</option>
+                            <option value="monthly" {{ request('group_by', 'monthly') == 'monthly' ? 'selected' : '' }}>Bulanan</option>
                         </select>
 
                         <button type="submit" class="px-3 py-1 bg-[#0f2b5c] hover:bg-blue-900 text-white font-bold text-xs rounded-lg transition-all shadow-sm">
@@ -217,6 +218,22 @@
                             </a>
                         @endif
                     </form>
+                </div>
+
+                <!-- Custom Badge Legend -->
+                <div class="flex flex-wrap items-center gap-4 mb-3 text-xs font-semibold text-slate-600">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded bg-blue-500 inline-block"></span>
+                        <span>Sedang Berjalan</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span>
+                        <span>Selesai</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-[#0f2b5c] inline-block"></span>
+                        <span>Total Beban Proyek</span>
+                    </div>
                 </div>
 
                 <!-- Canvas Grafik -->
@@ -401,13 +418,13 @@
                                 <!-- 2. NO SERVICE NOTIFIKASI & SERVICE ORDER -->
                                 <td class="py-5 px-4">
                                     <div class="space-y-1 text-xs">
-                                        <div><span class="text-slate-400">Notif:</span> <span class="font-mono text-slate-600">{{ $job->no_service_notifikasi ?: '-' }}</span></div>
-                                        <div><span class="text-slate-400">SO:</span> <span class="font-mono font-semibold text-slate-700">{{ $job->no_service_order ?: '-' }}</span></div>
+                                        <div><span class="text-slate-400">Notif:</span> <span class="tabular-nums font-semibold text-slate-700">{{ $job->no_service_notifikasi ?: '-' }}</span></div>
+                                        <div><span class="text-slate-400">SO:</span> <span class="tabular-nums font-bold text-slate-800">{{ $job->no_service_order ?: '-' }}</span></div>
                                     </div>
                                 </td>
 
                                 <!-- 3. OWNER ESTIMATE -->
-                                <td class="py-5 px-4 whitespace-nowrap font-bold font-mono text-slate-800">
+                                <td class="py-5 px-4 whitespace-nowrap font-bold tabular-nums text-slate-800">
                                     Rp {{ number_format($job->owner_estimate ?? 0, 0, ',', '.') }}
                                 </td>
 
@@ -416,7 +433,7 @@
                                     <div class="text-xs">
                                         @if(isset($job->pos) && $job->pos->count() > 0)
                                             <div class="flex flex-wrap items-center gap-1">
-                                                <button @click="openPoModal = true" type="button" class="font-bold text-blue-900 hover:text-blue-700 hover:underline text-left font-mono">
+                                                <button @click="openPoModal = true" type="button" class="font-bold text-blue-900 hover:text-blue-700 hover:underline text-left tabular-nums">
                                                     {{ $job->pos->first()->po_number ?? $job->pos->first()->no_po }}
                                                 </button>
                                                 @if($job->pos->count() > 1)
@@ -429,7 +446,7 @@
                                             <!-- Modal PO -->
                                             <template x-teleport="body">
                                                 <div x-show="openPoModal" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-                                                    <div @click.away="openPoModal = false" x-show="openPoModal" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden text-slate-800">
+                                                    <div @click.away="openPoModal = false" @keydown.escape.window="openPoModal = false" x-show="openPoModal" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden text-slate-800">
                                                         <div class="px-5 py-4 text-white flex justify-between items-center bg-[#0f2b5c]">
                                                             <div><h4 class="font-bold text-sm">Rincian PO</h4></div>
                                                             <button @click="openPoModal = false" type="button" class="text-white/70 hover:text-white font-bold px-2 rounded-lg transition-colors">✕</button>
@@ -447,8 +464,8 @@
                                                                     @foreach($job->pos as $index => $po)
                                                                     <tr class="hover:bg-slate-50">
                                                                         <td class="py-2.5 px-3 text-center font-bold text-slate-400">-</td>
-                                                                        <td class="py-2.5 px-3 font-mono font-semibold text-amber-800">{{ $po->po_number ?? $po->no_po }}</td>
-                                                                        <td class="py-2.5 px-3 text-right font-bold font-mono">Rp {{ number_format($po->price ?? $po->harga ?? 0, 0, ',', '.') }}</td>
+                                                                        <td class="py-2.5 px-3 tabular-nums font-bold text-amber-800">{{ $po->po_number ?? $po->no_po }}</td>
+                                                                        <td class="py-2.5 px-3 text-right font-bold tabular-nums text-slate-800">Rp {{ number_format($po->price ?? $po->harga ?? 0, 0, ',', '.') }}</td>
                                                                     </tr>
                                                                     @endforeach
                                                                 </tbody>
@@ -461,7 +478,7 @@
                                                 </div>
                                             </template>
                                         @elseif(!empty($job->no_po))
-                                            <span class="font-bold text-slate-800 font-mono">{{ $job->no_po }}</span>
+                                            <span class="font-bold text-slate-800 tabular-nums">{{ $job->no_po }}</span>
                                         @else
                                             <span class="text-slate-400">-</span>
                                         @endif
@@ -478,7 +495,7 @@
                                             <div class="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/80">
                                                 <div class="h-full rounded-full {{ $barBg }} transition-all duration-700" style="width: {{ $valClamped }}%"></div>
                                             </div>
-                                            <span class="text-xs font-black text-blue-900 shrink-0 font-mono">
+                                            <span class="text-xs font-black text-blue-900 shrink-0 tabular-nums">
                                                 {{ number_format($valClamped, 0) }}%
                                             </span>
                                         </div>
@@ -547,48 +564,99 @@
         <!-- Script Rendering Chart -->
         <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Line Chart Tren Pembuatan Job Package (Chart.js)
+            // 1. Chart Beban Kerja Proyek Aktif (Chart.js Combo Stacked Bar + Line)
             if (typeof Chart !== 'undefined') {
                 const elTrend = document.getElementById('jobPackageTrendChart');
                 if (elTrend) {
                     const ctx = elTrend.getContext('2d');
-                    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                    gradient.addColorStop(0, 'rgba(15, 43, 92, 0.25)');
-                    gradient.addColorStop(1, 'rgba(15, 43, 92, 0.0)');
 
                     new Chart(ctx, {
-                        type: 'line',
+                        type: 'bar',
                         data: {
                             labels: @json($labels ?? []),
-                            datasets: [{
-                                label: 'Jumlah Paket',
-                                data: @json($dataValues ?? []),
-                                borderColor: '#0f2b5c',
-                                backgroundColor: gradient,
-                                borderWidth: 3,
-                                fill: true,
-                                tension: 0.4,
-                                pointRadius: 5,
-                                pointHoverRadius: 7,
-                                pointBackgroundColor: '#f59e0b',
-                                pointBorderColor: '#ffffff',
-                                pointBorderWidth: 2
-                            }]
+                            datasets: [
+                                {
+                                    label: 'Sedang Berjalan',
+                                    data: @json($dataInProgress ?? []),
+                                    backgroundColor: '#3b82f6',
+                                    hoverBackgroundColor: '#2563eb',
+                                    borderRadius: 5,
+                                    borderSkipped: false,
+                                    stack: 'workload',
+                                    order: 2
+                                },
+                                {
+                                    label: 'Selesai',
+                                    data: @json($dataCompleted ?? []),
+                                    backgroundColor: '#10b981',
+                                    hoverBackgroundColor: '#059669',
+                                    borderRadius: 5,
+                                    borderSkipped: false,
+                                    stack: 'workload',
+                                    order: 2
+                                },
+                                {
+                                    label: 'Total Beban Proyek',
+                                    data: @json($dataTotal ?? $dataValues ?? []),
+                                    type: 'line',
+                                    borderColor: '#0f2b5c',
+                                    borderWidth: 2.5,
+                                    backgroundColor: 'rgba(15, 43, 92, 0.05)',
+                                    fill: false,
+                                    tension: 0.35,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6,
+                                    pointBackgroundColor: '#f59e0b',
+                                    pointBorderColor: '#0f2b5c',
+                                    pointBorderWidth: 1.5,
+                                    order: 1
+                                }
+                            ]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false,
+                            },
                             plugins: {
-                                legend: { display: false }
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#0f172a',
+                                    titleColor: '#ffffff',
+                                    bodyColor: '#e2e8f0',
+                                    padding: 12,
+                                    cornerRadius: 10,
+                                    boxPadding: 6,
+                                    usePointStyle: true,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return ' ' + context.dataset.label + ': ' + context.parsed.y + ' Paket';
+                                        }
+                                    }
+                                }
                             },
                             scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: { stepSize: 1 },
-                                    grid: { color: '#f1f5f9' }
-                                },
                                 x: {
-                                    grid: { display: false }
+                                    stacked: true,
+                                    grid: { display: false },
+                                    ticks: {
+                                        color: '#64748b',
+                                        font: { weight: '600', size: 11 }
+                                    }
+                                },
+                                y: {
+                                    stacked: true,
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 2,
+                                        color: '#64748b',
+                                        font: { weight: '600', size: 11 }
+                                    },
+                                    grid: {
+                                        color: '#f1f5f9'
+                                    }
                                 }
                             }
                         }

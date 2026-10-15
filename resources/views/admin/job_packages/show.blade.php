@@ -101,10 +101,15 @@
             <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
                 @if (Route::has('admin.job-packages.reactivate') && Route::has('admin.job-packages.cancel'))
                     @if ($isCancelled)
-                        <form action="{{ route('admin.job-packages.reactivate', $jobPackage) }}" method="POST" onsubmit="return confirm('Aktifkan kembali Job Package ini?')">
+                        <form action="{{ route('admin.job-packages.reactivate', $jobPackage) }}" method="POST"
+                            data-confirm-delete="Job Package ini akan dipindahkan kembali ke daftar pekerjaan aktif."
+                            data-confirm-title="Aktifkan Kembali?"
+                            data-confirm-btn="Ya, Aktifkan"
+                            data-confirm-type="success"
+                            data-item-name="{{ $jobPackage->nama_pekerjaan }}">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-emerald-600/20 transition-all detail-action flex items-center gap-2">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-emerald-600/20 transition-all detail-action flex items-center gap-2 cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
@@ -112,10 +117,15 @@
                             </button>
                         </form>
                     @else
-                        <form action="{{ route('admin.job-packages.cancel', $jobPackage) }}" method="POST" onsubmit="return confirm('Batalkan Job Package ini?')">
+                        <form action="{{ route('admin.job-packages.cancel', $jobPackage) }}" method="POST"
+                            data-confirm-delete="Pekerjaan ini akan dipindahkan ke daftar pekerjaan dibatalkan / tidak dilanjutkan."
+                            data-confirm-title="Batalkan Job Package?"
+                            data-confirm-btn="Ya, Batalkan"
+                            data-confirm-type="warning"
+                            data-item-name="{{ $jobPackage->nama_pekerjaan }}">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 px-4 py-2.5 rounded-xl font-bold text-xs transition-all detail-action flex items-center gap-2 shadow-sm">
+                            <button type="submit" class="bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 px-4 py-2.5 rounded-xl font-bold text-xs transition-all detail-action flex items-center gap-2 shadow-sm cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                 </svg>

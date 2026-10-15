@@ -10,7 +10,16 @@
     <style>
         [x-cloak] { display: none !important; }
         html { scroll-behavior: smooth; }
-        body.public-reference { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+        body.public-reference,
+        body.public-reference button,
+        body.public-reference input,
+        body.public-reference select,
+        body.public-reference textarea,
+        body.public-reference table { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+        }
+        body.public-reference { background: #f8fafc; }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
         .public-reference .kpi-icon-3d { box-shadow: 0 10px 0 rgba(37,99,235,.10), 0 16px 22px rgba(15,43,92,.12); transform: translateY(-1px); transition: transform .25s ease, box-shadow .25s ease; }
         .public-reference .group:hover .kpi-icon-3d { transform: translateY(-5px) rotate(-3deg); box-shadow: 0 13px 0 rgba(37,99,235,.12), 0 21px 28px rgba(15,43,92,.15); }
         .public-reference .info-section { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }

@@ -395,56 +395,71 @@
 
                                     <!-- AKSI -->
                                     <td class="px-4 py-4 align-top text-center">
-                                        <div class="flex items-center justify-center gap-1.5 flex-wrap">
-                                            <a href="{{ route('admin.job-packages.show', $jp) }}" title="Detail Job Package" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div class="inline-flex items-center justify-center gap-1.5">
+                                            <!-- Tombol Detail -->
+                                            <a href="{{ route('admin.job-packages.show', $jp) }}" title="Detail Job Package" class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-300 shadow-2xs inline-flex items-center justify-center transition-all duration-150 active:scale-95">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                 </svg>
-                                                <span>Detail</span>
                                             </a>
 
                                             <!-- Tombol Edit dengan Gate 'edit-data' -->
                                             @can('edit-data')
-                                                <a href="{{ route('admin.job-packages.edit', $jp) }}" title="Edit Job Package" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <a href="{{ route('admin.job-packages.edit', $jp) }}" title="Edit Job Package" class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-300 shadow-2xs inline-flex items-center justify-center transition-all duration-150 active:scale-95">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                     </svg>
-                                                    <span>Edit</span>
                                                 </a>
                                             @endcan
                                             
+                                            <!-- Tombol Restore / Batal -->
                                             @if($isCancelled)
-                                                <form method="POST" action="{{ route('admin.job-packages.reactivate', $jp) }}" class="inline">
+                                                <form method="POST" action="{{ route('admin.job-packages.reactivate', $jp) }}" 
+                                                    class="inline"
+                                                    data-confirm-delete="Job Package ini akan dipindahkan kembali ke daftar pekerjaan aktif."
+                                                    data-confirm-title="Aktifkan Kembali?"
+                                                    data-confirm-btn="Ya, Aktifkan"
+                                                    data-confirm-type="success"
+                                                    data-scroll-anchor="table-running"
+                                                    data-item-name="{{ $jp->nama_pekerjaan }}">
                                                     @csrf @method('PATCH')
-                                                    <button type="submit" title="Aktifkan Kembali Job Package" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <button type="submit" title="Aktifkan Kembali Job Package" class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 shadow-2xs inline-flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                                         </svg>
-                                                        <span>Restore</span>
                                                     </button>
                                                 </form>
                                             @else
-                                                <form method="POST" action="{{ route('admin.job-packages.cancel', $jp) }}" class="inline">
+                                                <form method="POST" action="{{ route('admin.job-packages.cancel', $jp) }}" 
+                                                    class="inline"
+                                                    data-confirm-delete="Pekerjaan ini akan dipindahkan ke daftar pekerjaan dibatalkan / tidak dilanjutkan."
+                                                    data-confirm-title="Batalkan Job Package?"
+                                                    data-confirm-btn="Ya, Batalkan"
+                                                    data-confirm-type="warning"
+                                                    data-scroll-anchor="table-cancelled"
+                                                    data-item-name="{{ $jp->nama_pekerjaan }}">
                                                     @csrf @method('PATCH')
-                                                    <button type="submit" title="Batalkan Job Package" class="px-2.5 py-1.5 bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <button type="submit" title="Batalkan Job Package" class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-700 hover:bg-slate-100 hover:border-slate-300 shadow-2xs inline-flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                                                         </svg>
-                                                        <span>Batal</span>
                                                     </button>
                                                 </form>
                                             @endif
 
                                             <!-- Tombol Hapus dengan Gate 'delete-data' -->
                                             @can('delete-data')
-                                                <form method="POST" action="{{ route('admin.job-packages.destroy', $jp) }}" onsubmit="return confirm('Hapus Job Package ini secara permanen?')" class="inline">
+                                                <form method="POST" action="{{ route('admin.job-packages.destroy', $jp) }}" 
+                                                    class="inline"
+                                                    data-confirm-delete="Seluruh riwayat dan berkas dokumen terkait pekerjaan ini akan dihapus secara permanen dari sistem."
+                                                    data-confirm-title="Hapus Job Package?"
+                                                    data-item-name="{{ $jp->nama_pekerjaan }}">
                                                     @csrf @method('DELETE')
-                                                    <button type="submit" title="Hapus Permanen" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <button type="submit" title="Hapus Permanen" class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-300 shadow-2xs inline-flex items-center justify-center transition-all duration-150 active:scale-95 cursor-pointer">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                         </svg>
-                                                        <span>Hapus</span>
                                                     </button>
                                                 </form>
                                             @endcan

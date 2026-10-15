@@ -514,8 +514,8 @@
                                 <div class="flex items-center justify-between gap-2 mb-2 p-2 bg-emerald-50 rounded-lg border border-emerald-200 text-[11px]">
                                     <span class="text-emerald-700 font-semibold truncate">✓ Berkas tersimpan</span>
                                     <button type="button"
-                                        onclick="if(confirm('Hapus dokumen ini?')) document.getElementById('delete-doc-{{ $field }}').submit();"
-                                        class="text-rose-600 hover:underline font-bold shrink-0">
+                                        onclick="confirmDelete('delete-doc-{{ $field }}', '{{ $label }}', 'Hapus Dokumen?', 'Berkas dokumen ini akan dihapus secara permanen.')"
+                                        class="text-rose-600 hover:underline font-bold shrink-0 cursor-pointer">
                                         Hapus
                                     </button>
                                 </div>
@@ -543,8 +543,8 @@
                 <div class="flex items-center justify-between gap-2 mb-3 p-2.5 bg-indigo-50 rounded-xl border border-indigo-200 text-xs max-w-xs">
                     <span class="text-indigo-700 font-semibold truncate">✓ Berkas pendukung tersimpan</span>
                     <button type="button"
-                        onclick="if(confirm('Hapus dokumen pendukung ini?')) document.getElementById('delete-doc-doc_pendukung_lainnya').submit();"
-                        class="text-rose-600 hover:underline font-bold shrink-0">
+                        onclick="confirmDelete('delete-doc-doc_pendukung_lainnya', 'Dokumen Pendukung Lainnya', 'Hapus Dokumen?', 'Berkas dokumen pendukung ini akan dihapus secara permanen.')"
+                        class="text-rose-600 hover:underline font-bold shrink-0 cursor-pointer">
                         Hapus
                     </button>
                 </div>

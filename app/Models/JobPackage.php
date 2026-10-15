@@ -19,8 +19,9 @@ class JobPackage extends Model
         'progress_pekerjaan', 'tanggal_mulai_pekerjaan', 'proses_adm_keuangan',
         'tanggal_selesai_pekerjaan', 'hasil_progres', 'no_po', 'po_items',
         'latest_activity', 'keterangan', 'google_drive_folder_id',
-        'doc_rab', 'doc_bak', 'doc_surat_permintaan', 'doc_surat_izin_prinsip',
-        'doc_tor', 'doc_bast', 'created_by', 'status',
+        'doc_rab', 'doc_form_pbj', 'doc_bak', 'doc_surat_permintaan', 'doc_surat_izin_prinsip',
+        'doc_tor', 'doc_bast', 'doc_laporan_pekerjaan', 'doc_pendukung_lainnya',
+        'created_by', 'status',
     ];
 
     protected $casts = [
@@ -40,11 +41,14 @@ class JobPackage extends Model
 
         // Multiple Upload Array Casts
         'doc_rab'                   => 'array',
+        'doc_form_pbj'              => 'array',
         'doc_bak'                   => 'array',
         'doc_surat_permintaan'      => 'array',
         'doc_surat_izin_prinsip'    => 'array',
         'doc_tor'                   => 'array',
         'doc_bast'                  => 'array',
+        'doc_laporan_pekerjaan'     => 'array',
+        'doc_pendukung_lainnya'     => 'array',
     ];
 
     protected static function booted(): void

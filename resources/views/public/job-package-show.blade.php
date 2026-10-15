@@ -95,7 +95,7 @@
                     </div>
                     <h3 class="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-600">No. Service Notifikasi</h3>
                 </div>
-                <p class="font-mono text-sm sm:text-base font-extrabold text-slate-800">{{ $jobPackage->no_service_notifikasi ?: '-' }}</p>
+                <p class="tabular-nums text-sm sm:text-base font-extrabold text-slate-800">{{ $jobPackage->no_service_notifikasi ?: '-' }}</p>
             </div>
 
             <div class="detail-panel rounded-2xl bg-white p-4 sm:p-5 flex flex-col justify-between">
@@ -103,7 +103,7 @@
                     <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 font-extrabold text-lg">#</div>
                     <h3 class="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-600">No. Service Order (SO)</h3>
                 </div>
-                <p class="font-mono text-sm sm:text-base font-extrabold text-blue-900">{{ $jobPackage->no_service_order ?: '-' }}</p>
+                <p class="tabular-nums text-sm sm:text-base font-extrabold text-blue-900">{{ $jobPackage->no_service_order ?: '-' }}</p>
             </div>
         </div>
 
@@ -130,11 +130,11 @@
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs font-bold text-slate-800 truncate">{{ $po->description ?: 'PO Material' }}</p>
-                                <p class="font-mono text-[11px] text-slate-500">{{ $po->no_po ?? $po->po_number }}</p>
+                                <p class="tabular-nums text-[11px] font-semibold text-slate-500">{{ $po->no_po ?? $po->po_number }}</p>
                             </div>
                         </div>
                         <div class="text-right shrink-0">
-                            <span class="font-mono text-sm font-bold text-slate-800">Rp {{ number_format($po->price ?? $po->harga ?? 0, 0, ',', '.') }}</span>
+                            <span class="tabular-nums text-sm font-bold text-slate-800">Rp {{ number_format($po->price ?? $po->harga ?? 0, 0, ',', '.') }}</span>
                         </div>
                     </div>
                 @empty
@@ -146,7 +146,7 @@
             <div class="mt-4 border-t border-slate-200 pt-4 flex justify-end">
                 <div class="text-right">
                     <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Total Harga</span>
-                    <p class="text-xl font-black text-emerald-700 font-mono">Rp {{ number_format($totalPO, 0, ',', '.') }}</p>
+                    <p class="text-xl font-black text-emerald-700 tabular-nums">Rp {{ number_format($totalPO, 0, ',', '.') }}</p>
                 </div>
             </div>
         </div>
@@ -204,7 +204,7 @@
                     <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 transition-all hover:bg-slate-50">
                         <div class="mb-2 flex items-center justify-between text-xs font-bold">
                             <span class="text-slate-700">RAB LP-002 <span class="font-normal text-slate-400">(5%)</span></span>
-                            <span class="font-mono text-sm font-black text-blue-600">{{ number_format((float) $jobPackage->rab_lp002, 0) }}%</span>
+                            <span class="tabular-nums text-sm font-black text-blue-600">{{ number_format((float) $jobPackage->rab_lp002, 0) }}%</span>
                         </div>
                         <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                             <div class="h-full rounded-full bg-blue-500" style="width: {{ (float) $jobPackage->rab_lp002 }}%"></div>
@@ -215,7 +215,7 @@
                     <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 transition-all hover:bg-slate-50">
                         <div class="mb-2 flex items-center justify-between text-xs font-bold">
                             <span class="text-slate-700">PBJ LP-002 <span class="font-normal text-slate-400">(5%)</span></span>
-                            <span class="font-mono text-sm font-black text-amber-600">{{ number_format((float) $jobPackage->pbj_lp002, 0) }}%</span>
+                            <span class="tabular-nums text-sm font-black text-amber-600">{{ number_format((float) $jobPackage->pbj_lp002, 0) }}%</span>
                         </div>
                         <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                             <div class="h-full rounded-full bg-amber-500" style="width: {{ (float) $jobPackage->pbj_lp002 }}%"></div>
@@ -226,7 +226,7 @@
                     <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 transition-all hover:bg-slate-50">
                         <div class="mb-2 flex items-center justify-between text-xs font-bold">
                             <span class="text-slate-700">Fisik Pekerjaan <span class="font-normal text-slate-400">(85%)</span></span>
-                            <span class="font-mono text-sm font-black text-blue-600">{{ number_format((float) $jobPackage->progress_pekerjaan, 0) }}%</span>
+                            <span class="tabular-nums text-sm font-black text-blue-600">{{ number_format((float) $jobPackage->progress_pekerjaan, 0) }}%</span>
                         </div>
                         <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                             <div class="h-full rounded-full bg-blue-600" style="width: {{ (float) $jobPackage->progress_pekerjaan }}%"></div>
@@ -237,7 +237,7 @@
                     <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 transition-all hover:bg-slate-50">
                         <div class="mb-2 flex items-center justify-between text-xs font-bold">
                             <span class="text-slate-700">Progress Dok. Keuangan <span class="font-normal text-slate-400">(5%)</span></span>
-                            <span class="font-mono text-sm font-black text-amber-600">{{ number_format((float) $jobPackage->proses_adm_keuangan, 0) }}%</span>
+                            <span class="tabular-nums text-sm font-black text-amber-600">{{ number_format((float) $jobPackage->proses_adm_keuangan, 0) }}%</span>
                         </div>
                         <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                             <div class="h-full rounded-full bg-amber-500" style="width: {{ (float) $jobPackage->proses_adm_keuangan }}%"></div>

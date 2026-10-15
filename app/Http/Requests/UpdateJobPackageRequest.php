@@ -117,6 +117,15 @@ class UpdateJobPackageRequest extends FormRequest
 
             'doc_bast'                 => ['nullable', 'array'],
             'doc_bast.*'               => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+
+            'doc_form_pbj'             => ['nullable', 'array'],
+            'doc_form_pbj.*'           => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+
+            'doc_laporan_pekerjaan'    => ['nullable', 'array'],
+            'doc_laporan_pekerjaan.*'  => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
+
+            'doc_pendukung_lainnya'    => ['nullable', 'array'],
+            'doc_pendukung_lainnya.*'  => ['file', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'max:51200'],
         ];
     }
 
@@ -142,26 +151,29 @@ class UpdateJobPackageRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'job_package'              => 'Job Package',
-            'no_service_notifikasi'    => 'No. Service Notifikasi',
-            'no_service_order'         => 'No. Service Order',
-            'owner_estimate'           => 'Owner Estimate',
-            'final_harga'              => 'Final Harga',
-            'rab_lp002'                => 'RAB LP-001/002',
-            'pbj_lp002'                => 'PBJ LP-001/002',
-            'progress_pekerjaan'       => 'Progress Pekerjaan',
-            'proses_adm_keuangan'      => 'Proses ADM Keuangan',
-            'doc_rab.*'                => 'Dokumen RAB',
-            'doc_bak.*'                => 'Dokumen BAK',
-            'doc_surat_permintaan.*'   => 'Dokumen Surat Permintaan',
-            'doc_surat_izin_prinsip.*' => 'Dokumen Surat Izin Prinsip',
-            'doc_tor.*'                => 'Dokumen TOR',
-            'doc_bast.*'               => 'Dokumen BAST',
-            'pos.*.no_po'              => 'No. PO',
-            'pos.*.description'        => 'Deskripsi Item PO',
-            'pos.*.price'              => 'Harga PO',
-            'surat_bak_docs.*'         => 'No. Surat/BAK/Doc',
-            'permintaan_dari.*'        => 'Permintaan Dari',
+            'job_package'                 => 'Job Package',
+            'no_service_notifikasi'       => 'No. Service Notifikasi',
+            'no_service_order'            => 'No. Service Order',
+            'owner_estimate'              => 'Owner Estimate',
+            'final_harga'                 => 'Final Harga',
+            'rab_lp002'                   => 'RAB LP-001/002',
+            'pbj_lp002'                   => 'PBJ LP-001/002',
+            'progress_pekerjaan'          => 'Progress Pekerjaan',
+            'proses_adm_keuangan'         => 'Proses ADM Keuangan',
+            'doc_rab.*'                   => 'Dokumen RAB',
+            'doc_bak.*'                   => 'Dokumen BAK',
+            'doc_surat_permintaan.*'      => 'Dokumen Surat Permintaan',
+            'doc_surat_izin_prinsip.*'    => 'Dokumen Surat Izin Prinsip',
+            'doc_form_pbj.*'              => 'Dokumen Form Permintaan Barang & Jasa',
+            'doc_tor.*'                   => 'Dokumen TOR',
+            'doc_bast.*'                  => 'Dokumen BAST',
+            'doc_laporan_pekerjaan.*'     => 'Dokumen Laporan Pekerjaan',
+            'doc_pendukung_lainnya.*'     => 'Dokumen Pendukung Lainnya',
+            'pos.*.no_po'                 => 'No. PO',
+            'pos.*.description'           => 'Deskripsi Item PO',
+            'pos.*.price'                 => 'Harga PO',
+            'surat_bak_docs.*'            => 'No. Surat/BAK/Doc',
+            'permintaan_dari.*'           => 'Permintaan Dari',
         ];
     }
 

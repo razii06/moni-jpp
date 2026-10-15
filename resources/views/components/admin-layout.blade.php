@@ -45,6 +45,42 @@
         .admin-pop-animate {
             animation: adminPagePop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        /* Custom Styling Modern untuk SweetAlert2 Modal (HANYA aktif saat modal pop-up tengah terbuka) */
+        body.swal2-shown:not(.swal2-toast-shown) .swal2-container.swal2-backdrop-show,
+        .swal2-container.swal2-center.swal2-backdrop-show {
+            background: rgba(15, 23, 42, 0.5) !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+        }
+
+        /* Pastikan Toast Notifikasi di pojok kanan SELALU transparan tanpa bayangan hitam & tanpa blur */
+        body.swal2-toast-shown .swal2-container,
+        .swal2-container.swal2-top-end,
+        .swal2-container:has(.swal2-toast) {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            pointer-events: none !important;
+        }
+        .swal2-toast {
+            pointer-events: auto !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+            border-radius: 1rem !important;
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+        }
+
+        .swal2-popup.jpp-swal-modal {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            border-radius: 1.25rem !important;
+            padding: 1.75rem 1.5rem !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+        }
+        .swal2-icon.swal2-warning {
+            border-color: #f43f5e !important;
+            color: #f43f5e !important;
+        }
     </style>
 </head>
 
@@ -240,6 +276,23 @@
                 });
             @endif
 
+            // Tangkap session warning (misal data tersimpan tetapi ada berkas gagal diunggah)
+            @if(session('warning'))
+                Swal.fire({
+                    icon: 'warning',
+                    iconColor: '#f59e0b',
+                    title: 'Perhatian!',
+                    text: '{{ session("warning") }}',
+                    confirmButtonText: 'Saya Mengerti',
+                    confirmButtonColor: '#f59e0b',
+                    customClass: {
+                        popup: 'jpp-swal-modal font-sans max-w-sm sm:max-w-md',
+                        title: '!text-base sm:!text-lg !font-bold !text-slate-800 !pt-1 !tracking-tight',
+                        confirmButton: 'py-2.5 px-6 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-900 bg-amber-400 hover:bg-amber-500 transition-all duration-150 cursor-pointer shadow-md'
+                    }
+                });
+            @endif
+
             // Tangkap semua validation error sekaligus (misal lupa isi form)
             @if(isset($errors) && $errors->any())
                 let errorHtml = '<ul style="text-align: left; font-size: 0.875rem; color: #ef4444; list-style-type: disc; padding-left: 1.5rem;">';
@@ -256,24 +309,144 @@
                 });
             @endif
             
-            // Helper Fungsi Global untuk konfirmasi Hapus (Bisa dipakai di tombol hapus mana saja)
-            window.confirmDelete = function(formId) {
-                Swal.fire({
-                    title: 'Apakah Anda yakin?',
-                    text: "Data yang dihapus tidak dapat dikembalikan!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#94a3b8',
-                    confirmButtonText: 'Ya, hapus!',
-                    cancelButtonText: 'Batal',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.getElementById(formId).submit();
+            // Pulihkan posisi scroll setelah reload jika ada posisi yang tersimpan (Smart Scroll Memory)
+            const savedScrollAnchor = sessionStorage.getItem('moni_jpp_scroll_anchor');
+            const savedScrollPos = sessionStorage.getItem('moni_jpp_scroll_pos');
+
+            if (savedScrollAnchor) {
+                sessionStorage.removeItem('moni_jpp_scroll_anchor');
+                sessionStorage.removeItem('moni_jpp_scroll_pos');
+                setTimeout(() => {
+                    const el = document.getElementById(savedScrollAnchor);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
-                })
+                }, 100);
+            } else if (savedScrollPos !== null) {
+                sessionStorage.removeItem('moni_jpp_scroll_pos');
+                const targetY = parseInt(savedScrollPos, 10);
+                if (!isNaN(targetY) && targetY > 0) {
+                    window.scrollTo({ top: targetY, behavior: 'instant' });
+                    setTimeout(() => {
+                        window.scrollTo({ top: targetY, behavior: 'instant' });
+                    }, 50);
+                }
             }
+
+            // Modal Konfirmasi Modern Enterprise (SweetAlert2 Custom Theme)
+            window.showConfirmDialog = function(options) {
+                const config = Object.assign({
+                    title: 'Hapus Data Permanen?',
+                    itemName: '',
+                    message: 'Data yang dihapus tidak dapat dipulihkan kembali.',
+                    confirmText: 'Ya, Hapus Permanen',
+                    cancelText: 'Batal',
+                    confirmButtonClass: 'bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white shadow-md shadow-rose-600/20',
+                    icon: 'warning',
+                    iconColor: '#f43f5e',
+                    onConfirm: () => {}
+                }, options);
+
+                let htmlContent = '<div class="text-xs text-slate-500 leading-relaxed text-center">';
+                if (config.itemName) {
+                    htmlContent += '<div class="mb-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-800 font-semibold text-xs leading-normal break-words text-center">&ldquo;' + config.itemName + '&rdquo;</div>';
+                }
+                htmlContent += '<p class="text-slate-500 font-normal">' + config.message + '</p></div>';
+
+                Swal.fire({
+                    title: config.title,
+                    html: htmlContent,
+                    icon: config.icon,
+                    iconColor: config.iconColor,
+                    showCancelButton: true,
+                    confirmButtonText: config.confirmText,
+                    cancelButtonText: config.cancelText,
+                    reverseButtons: true,
+                    focusCancel: true,
+                    buttonsStyling: false,
+                    customClass: {
+                        popup: 'jpp-swal-modal font-sans max-w-sm sm:max-w-md',
+                        title: '!text-base sm:!text-lg !font-bold !text-slate-800 !pt-1 !tracking-tight',
+                        htmlContainer: '!mt-2 !mb-0 !overflow-visible',
+                        actions: '!flex !gap-3 !w-full !mt-6 !justify-center',
+                        confirmButton: 'flex-1 py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 cursor-pointer ' + config.confirmButtonClass,
+                        cancelButton: 'flex-1 py-2.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-800 border border-slate-200 transition-all duration-150 active:scale-95 cursor-pointer'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && typeof config.onConfirm === 'function') {
+                        config.onConfirm();
+                    }
+                });
+            };
+
+            // Helper backward-compatible untuk tombol dengan confirmDelete(...)
+            window.confirmDelete = function(formId, itemName, title, message) {
+                window.showConfirmDialog({
+                    title: title || 'Hapus Data Permanen?',
+                    itemName: itemName || '',
+                    message: message || 'Data yang dihapus tidak dapat dipulihkan kembali.',
+                    onConfirm: () => {
+                        sessionStorage.setItem('moni_jpp_scroll_pos', window.scrollY);
+                        const form = typeof formId === 'string' ? document.getElementById(formId) : formId;
+                        if (form) form.submit();
+                    }
+                });
+            };
+
+            // Interseptor otomatis untuk semua form dengan atribut data-confirm-delete
+            document.addEventListener('submit', function (e) {
+                const form = e.target;
+                if (form && form.hasAttribute('data-confirm-delete')) {
+                    e.preventDefault();
+                    
+                    const title = form.getAttribute('data-confirm-title') || 'Hapus Data Permanen?';
+                    const itemName = form.getAttribute('data-item-name') || '';
+                    const message = form.getAttribute('data-confirm-delete') || 'Data yang dihapus tidak dapat dipulihkan kembali.';
+                    const confirmBtn = form.getAttribute('data-confirm-btn') || 'Ya, Hapus Permanen';
+                    const confirmType = form.getAttribute('data-confirm-type') || 'danger';
+                    const scrollAnchor = form.getAttribute('data-scroll-anchor') || '';
+                    
+                    let icon = 'warning';
+                    let iconColor = '#f43f5e';
+                    let confirmButtonClass = 'bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white shadow-md shadow-rose-600/20';
+
+                    if (confirmType === 'warning') {
+                        icon = 'warning';
+                        iconColor = '#f59e0b';
+                        confirmButtonClass = 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md shadow-amber-500/20';
+                    } else if (confirmType === 'success') {
+                        icon = 'question';
+                        iconColor = '#10b981';
+                        confirmButtonClass = 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-500/20';
+                    }
+
+                    window.showConfirmDialog({
+                        title: title,
+                        itemName: itemName,
+                        message: message,
+                        confirmText: confirmBtn,
+                        icon: icon,
+                        iconColor: iconColor,
+                        confirmButtonClass: confirmButtonClass,
+                        onConfirm: () => {
+                            if (scrollAnchor) {
+                                sessionStorage.setItem('moni_jpp_scroll_anchor', scrollAnchor);
+                            } else {
+                                sessionStorage.setItem('moni_jpp_scroll_pos', window.scrollY);
+                            }
+                            form.removeAttribute('data-confirm-delete');
+                            form.submit();
+                        }
+                    });
+                } else if (form && (form.hasAttribute('data-preserve-scroll') || form.classList.contains('preserve-scroll'))) {
+                    const scrollAnchor = form.getAttribute('data-scroll-anchor');
+                    if (scrollAnchor) {
+                        sessionStorage.setItem('moni_jpp_scroll_anchor', scrollAnchor);
+                    } else {
+                        sessionStorage.setItem('moni_jpp_scroll_pos', window.scrollY);
+                    }
+                }
+            });
         });
     </script>
 </body>

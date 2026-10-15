@@ -35,9 +35,12 @@
                         <h3 class="text-lg font-black text-emerald-800">Status: Aktif</h3>
                         <p class="text-sm text-emerald-600 mt-1">Akun Anda saat ini terlindungi oleh Two-Factor Authentication. Anda akan diminta memasukkan kode dari aplikasi Authenticator setiap kali login.</p>
                     </div>
-                    <form method="POST" action="{{ route('admin.2fa.disable') }}">
+                    <form method="POST" action="{{ route('admin.2fa.disable') }}"
+                        data-confirm-delete="Fitur Two-Factor Authentication akan dinonaktifkan. Keamanan akun Anda akan menurun."
+                        data-confirm-title="Nonaktifkan 2FA?"
+                        data-confirm-btn="Ya, Nonaktifkan">
                         @csrf
-                        <button type="submit" onclick="return confirm('Apakah Anda yakin ingin menonaktifkan 2FA? Keamanan akun akan menurun.')" class="whitespace-nowrap px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg transition text-sm shadow-md">
+                        <button type="submit" class="whitespace-nowrap px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition text-sm shadow-md cursor-pointer">
                             Nonaktifkan 2FA
                         </button>
                     </form>

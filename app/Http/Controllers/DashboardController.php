@@ -58,59 +58,104 @@
                     ->count(),
             ];
 
-            // --- BAGIAN TREN FILTER DINAMIS ---
-            $startDate = $request->input('start_date', Carbon::now()->subWeeks(8)->startOfWeek()->format('Y-m-d'));
-            $endDate   = $request->input('end_date', Carbon::now()->endOfWeek()->format('Y-m-d'));
-            $groupBy   = $request->input('group_by', 'weekly');
+            // --- BAGIAN TREN BEBAN KERJA PROYEK AKTIF (OPSI 1) ---
+            $startDate = $request->input('start_date', Carbon::now()->startOfYear()->format('Y-m-d'));
+            $endDate   = $request->input('end_date', Carbon::now()->endOfYear()->format('Y-m-d'));
+            $groupBy   = $request->input('group_by', 'monthly');
 
-            $trendQuery = JobPackage::whereBetween('created_at', [
-                Carbon::parse($startDate)->startOfDay(),
-                Carbon::parse($endDate)->endOfDay()
-            ]);
+            // Ambil seluruh paket pekerjaan aktif
+            $allJobs = JobPackage::where('status', '!=', 'batal')->get();
 
             $labels = [];
-            $dataValues = [];
+            $dataInProgress = [];
+            $dataCompleted = [];
+            $dataTotal = [];
 
             if ($groupBy === 'daily') {
-                $rawDatas = (clone $trendQuery)->select(
-                    DB::raw("DATE(created_at) as date_key"),
-                    DB::raw("COUNT(*) as total")
-                )->groupBy('date_key')->pluck('total', 'date_key');
-
                 $period = Carbon::parse($startDate)->daysUntil(Carbon::parse($endDate));
                 foreach ($period as $date) {
-                    $key = $date->format('Y-m-d');
                     $labels[] = $date->translatedFormat('d M Y');
-                    $dataValues[] = $rawDatas[$key] ?? 0;
-                }
-            } elseif ($groupBy === 'monthly') {
-                $rawDatas = (clone $trendQuery)->select(
-                    DB::raw("DATE_FORMAT(created_at, '%Y-%m') as month_key"),
-                    DB::raw("COUNT(*) as total")
-                )->groupBy('month_key')->pluck('total', 'month_key');
 
-                $period = Carbon::parse($startDate)->startOfMonth()->monthsUntil(Carbon::parse($endDate)->endOfMonth());
-                foreach ($period as $date) {
-                    $key = $date->format('Y-m');
-                    $labels[] = $date->translatedFormat('M Y');
-                    $dataValues[] = $rawDatas[$key] ?? 0;
-                }
-            } else { // weekly (default)
-                $rawDatas = (clone $trendQuery)->get()->groupBy(function ($item) {
-                    return Carbon::parse($item->created_at)->startOfWeek()->format('Y-m-d');
-                });
+                    $inProgressCount = 0;
+                    $completedCount  = 0;
 
+                    foreach ($allJobs as $job) {
+                        $start = $job->tanggal_mulai_pekerjaan ? Carbon::parse($job->tanggal_mulai_pekerjaan)->startOfDay() : Carbon::parse($job->created_at)->startOfDay();
+                        $end   = $job->tanggal_selesai_pekerjaan ? Carbon::parse($job->tanggal_selesai_pekerjaan)->endOfDay() : (clone $start)->endOfDay();
+
+                        if ($start->lte($date->endOfDay()) && $end->gte($date->startOfDay())) {
+                            if ((float)$job->hasil_progres >= 100) {
+                                $completedCount++;
+                            } else {
+                                $inProgressCount++;
+                            }
+                        }
+                    }
+
+                    $dataInProgress[] = $inProgressCount;
+                    $dataCompleted[]  = $completedCount;
+                    $dataTotal[]      = $inProgressCount + $completedCount;
+                }
+            } elseif ($groupBy === 'weekly') {
                 $period = Carbon::parse($startDate)->startOfWeek()->weeksUntil(Carbon::parse($endDate)->endOfWeek());
                 foreach ($period as $date) {
-                    $key = $date->format('Y-m-d');
-                    $endOfWeek = (clone $date)->endOfWeek();
-                    $labels[] = $date->format('d M') . ' - ' . $endOfWeek->format('d M');
-                    $dataValues[] = isset($rawDatas[$key]) ? $rawDatas[$key]->count() : 0;
+                    $startOfWeek = (clone $date)->startOfWeek();
+                    $endOfWeek   = (clone $date)->endOfWeek();
+                    $labels[]    = $startOfWeek->format('d M') . ' - ' . $endOfWeek->format('d M');
+
+                    $inProgressCount = 0;
+                    $completedCount  = 0;
+
+                    foreach ($allJobs as $job) {
+                        $start = $job->tanggal_mulai_pekerjaan ? Carbon::parse($job->tanggal_mulai_pekerjaan)->startOfDay() : Carbon::parse($job->created_at)->startOfDay();
+                        $end   = $job->tanggal_selesai_pekerjaan ? Carbon::parse($job->tanggal_selesai_pekerjaan)->endOfDay() : (clone $start)->endOfDay();
+
+                        if ($start->lte($endOfWeek) && $end->gte($startOfWeek)) {
+                            if ((float)$job->hasil_progres >= 100) {
+                                $completedCount++;
+                            } else {
+                                $inProgressCount++;
+                            }
+                        }
+                    }
+
+                    $dataInProgress[] = $inProgressCount;
+                    $dataCompleted[]  = $completedCount;
+                    $dataTotal[]      = $inProgressCount + $completedCount;
+                }
+            } else { // monthly (default)
+                $period = Carbon::parse($startDate)->startOfMonth()->monthsUntil(Carbon::parse($endDate)->endOfMonth());
+                foreach ($period as $date) {
+                    $startOfMonth = (clone $date)->startOfMonth();
+                    $endOfMonth   = (clone $date)->endOfMonth();
+                    $labels[]     = $date->translatedFormat('M Y');
+
+                    $inProgressCount = 0;
+                    $completedCount  = 0;
+
+                    foreach ($allJobs as $job) {
+                        $start = $job->tanggal_mulai_pekerjaan ? Carbon::parse($job->tanggal_mulai_pekerjaan)->startOfDay() : Carbon::parse($job->created_at)->startOfDay();
+                        $end   = $job->tanggal_selesai_pekerjaan ? Carbon::parse($job->tanggal_selesai_pekerjaan)->endOfDay() : (clone $start)->endOfDay();
+
+                        if ($start->lte($endOfMonth) && $end->gte($startOfMonth)) {
+                            if ((float)$job->hasil_progres >= 100) {
+                                $completedCount++;
+                            } else {
+                                $inProgressCount++;
+                            }
+                        }
+                    }
+
+                    $dataInProgress[] = $inProgressCount;
+                    $dataCompleted[]  = $completedCount;
+                    $dataTotal[]      = $inProgressCount + $completedCount;
                 }
             }
 
+            $dataValues = $dataTotal; // Kompatibilitas mundur
+
             return view('admin.dashboard', compact(
-                'stats', 'latestJobs', 'distribution', 'targetStats', 'startDate', 'endDate', 'labels', 'dataValues'
+                'stats', 'latestJobs', 'distribution', 'targetStats', 'startDate', 'endDate', 'labels', 'dataInProgress', 'dataCompleted', 'dataTotal', 'dataValues'
             ));
         }
 

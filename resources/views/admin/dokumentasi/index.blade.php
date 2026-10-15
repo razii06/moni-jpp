@@ -200,7 +200,10 @@
 
                                         {{-- Tombol Hapus Dibatasi Menggunakan Gate Otorisasi delete-data --}}
                                         @can('delete-data')
-                                            <form action="{{ route('admin.dokumentasi.destroy', $item) }}" method="POST" onsubmit="return confirm('Hapus dokumentasi ini?')">
+                                            <form action="{{ route('admin.dokumentasi.destroy', $item) }}" method="POST"
+                                                data-confirm-delete="Foto dokumentasi ini akan dihapus secara permanen dari sistem."
+                                                data-confirm-title="Hapus Dokumentasi?"
+                                                data-item-name="{{ $item->judul ?? 'Foto Dokumentasi' }}">
                                                 @csrf 
                                                 @method('DELETE')
                                                 <button type="submit" class="inline-flex items-center gap-1 rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-500 transition hover:bg-rose-100 border border-rose-100">
