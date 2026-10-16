@@ -325,7 +325,7 @@
                         </div>
                         <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">No. Service Order (SO)</span>
                     </div>
-                    <div class="text-xs font-bold text-blue-900 font-mono pl-0.5">
+                    <div class="text-xs font-bold text-slate-800 tabular-nums pl-0.5">
                         {{ $jobPackage->no_service_order ?? '-' }}
                     </div>
                 </div>
@@ -340,7 +340,7 @@
                         </div>
                         <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">No. Service Notifikasi</span>
                     </div>
-                    <div class="text-xs font-bold text-slate-800 font-mono pl-0.5">
+                    <div class="text-xs font-bold text-slate-800 tabular-nums pl-0.5">
                         {{ $jobPackage->no_service_notifikasi ?? '-' }}
                     </div>
                 </div>
@@ -405,7 +405,7 @@
                                     </span>
                                     <div class="truncate">
                                         <span class="font-bold text-slate-800 block truncate">{{ $namaPo }}</span>
-                                        <span class="text-[11px] text-slate-400 font-mono">{{ $po->no_po ?? '-' }}</span>
+                                        <span class="text-[11px] text-slate-400 font-medium tabular-nums">{{ $po->no_po ?? '-' }}</span>
                                     </div>
                                 </div>
                                 <span class="font-extrabold text-emerald-600 shrink-0 tabular-nums">

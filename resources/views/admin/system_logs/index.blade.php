@@ -166,131 +166,137 @@
                      @click="openFilterDrawer = false"
                      class="fixed inset-0 bg-slate-900/30 backdrop-blur-2xs transition-opacity"></div>
 
-                <!-- Slide-Over Drawer Container -->
-                <div class="fixed inset-0 overflow-hidden pointer-events-none">
-                    <div class="absolute inset-0 overflow-hidden">
-                        <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-                            
-                            <!-- Panel Content (Persis Acme Screenshot 2) -->
-                            <div x-show="openFilterDrawer"
-                                 x-transition:enter="transform transition ease-out duration-300"
-                                 x-transition:enter-start="translate-x-full"
-                                 x-transition:enter-end="translate-x-0"
-                                 x-transition:leave="transform transition ease-in duration-200"
-                                 x-transition:leave-start="translate-x-0"
-                                 x-transition:leave-end="translate-x-full"
-                                 class="pointer-events-auto w-screen max-w-sm bg-white shadow-xl flex flex-col">
-                                
-                                <!-- Drawer Header (Persis Acme: Title, Clear all, Close X) -->
-                                <div class="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between">
-                                    <h3 class="text-base font-semibold text-slate-800">Filter</h3>
-                                    <div class="flex items-center gap-4">
-                                        <button type="button" 
-                                                @click="resetFilters()" 
-                                                class="text-xs font-medium text-slate-500 hover:text-blue-600 transition-colors cursor-pointer">
-                                            Clear all
-                                        </button>
-                                        <button type="button" 
-                                                @click="openFilterDrawer = false" 
-                                                class="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                            </svg>
-                                        </button>
-                                    </div>
+                <!-- Slide-Over Drawer Container (Modern Floating Flyout Card) -->
+                <div class="fixed inset-0 overflow-y-auto pointer-events-none p-4 sm:p-6 md:p-8 flex justify-end items-start pt-14 sm:pt-16 md:pt-20">
+                    
+                    <!-- Panel Content: Modern Floating Card -->
+                    <div x-show="openFilterDrawer"
+                         x-transition:enter="transform transition ease-out duration-250"
+                         x-transition:enter-start="translate-x-6 opacity-0 scale-98"
+                         x-transition:enter-end="translate-x-0 opacity-100 scale-100"
+                         x-transition:leave="transform transition ease-in duration-200"
+                         x-transition:leave-start="translate-x-0 opacity-100 scale-100"
+                         x-transition:leave-end="translate-x-6 opacity-0 scale-98"
+                         class="pointer-events-auto w-full max-w-sm bg-white rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-200/90 flex flex-col overflow-hidden max-h-[calc(100vh-6rem)]">
+                        
+                        <!-- Drawer Header (Floating Card Header) -->
+                        <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 shrink-0">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100/80">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                                    </svg>
                                 </div>
+                                <h3 class="text-sm font-bold text-slate-800">Filter Log</h3>
+                                <template x-if="activeFilterCount > 0">
+                                    <span class="inline-flex items-center justify-center px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-600 text-white" x-text="activeFilterCount"></span>
+                                </template>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" 
+                                        @click="resetFilters()" 
+                                        class="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors px-2 py-1 rounded cursor-pointer">
+                                    Clear all
+                                </button>
+                                <button type="button" 
+                                        @click="openFilterDrawer = false" 
+                                        class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                                        title="Tutup (Esc)">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
 
-                                <!-- Drawer Form Fields (Persis Acme Screenshot 2) -->
-                                <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4 text-sm">
-                                    <!-- 1. Date Range Filter -->
-                                    <div class="space-y-1.5">
-                                        <label class="block text-xs font-medium text-slate-600">
-                                            Date Range
-                                        </label>
-                                        <select x-model="filters.date_range" class="w-full text-xs font-normal rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 py-2 text-slate-700 bg-white">
-                                            <option value="semua">Select Date</option>
-                                            <option value="today">Hari Ini</option>
-                                            <option value="yesterday">Kemarin</option>
-                                            <option value="7_days">7 Hari Terakhir</option>
-                                            <option value="30_days">30 Hari Terakhir</option>
-                                            <option value="this_month">Bulan Ini</option>
-                                            <option value="custom">Pilih Rentang Tanggal...</option>
-                                        </select>
+                        <!-- Drawer Form Fields -->
+                        <div class="overflow-y-auto px-5 py-4 space-y-4 text-xs">
+                            <!-- 1. Date Range Filter -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-semibold text-slate-600">
+                                    Rentang Waktu (Date Range)
+                                </label>
+                                <select x-model="filters.date_range" class="w-full text-xs font-normal rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 py-2 text-slate-700 bg-white">
+                                    <option value="semua">Semua Waktu (All Dates)</option>
+                                    <option value="today">Hari Ini</option>
+                                    <option value="yesterday">Kemarin</option>
+                                    <option value="7_days">7 Hari Terakhir</option>
+                                    <option value="30_days">30 Hari Terakhir</option>
+                                    <option value="this_month">Bulan Ini</option>
+                                    <option value="custom">Pilih Rentang Tanggal Khusus...</option>
+                                </select>
 
-                                        <!-- Custom Date Pickers -->
-                                        <div x-show="filters.date_range === 'custom'" class="pt-2 grid grid-cols-2 gap-2" style="display: none;">
-                                            <div>
-                                                <span class="text-[10px] text-slate-400 block mb-1">From:</span>
-                                                <input type="date" x-model="filters.date_from" class="w-full text-xs rounded-lg border-slate-300 focus:border-blue-500 py-1.5 text-slate-700">
-                                            </div>
-                                            <div>
-                                                <span class="text-[10px] text-slate-400 block mb-1">To:</span>
-                                                <input type="date" x-model="filters.date_to" class="w-full text-xs rounded-lg border-slate-300 focus:border-blue-500 py-1.5 text-slate-700">
-                                            </div>
-                                        </div>
+                                <!-- Custom Date Pickers -->
+                                <div x-show="filters.date_range === 'custom'" class="pt-2 grid grid-cols-2 gap-2" style="display: none;">
+                                    <div>
+                                        <span class="text-[10px] text-slate-400 block mb-1">Dari Tanggal:</span>
+                                        <input type="date" x-model="filters.date_from" class="w-full text-xs rounded-xl border-slate-300 focus:border-blue-500 py-1.5 text-slate-700">
                                     </div>
-
-                                    <!-- 2. What changed? Filter (Persis Acme Screenshot 2) -->
-                                    <div class="space-y-1.5">
-                                        <label class="block text-xs font-medium text-slate-600">
-                                            What changed?
-                                        </label>
-                                        <select x-model="filters.category" class="w-full text-xs font-normal rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 py-2 text-slate-700 bg-white">
-                                            <option value="semua">Select Type</option>
-                                            <option value="job_package">Job Package</option>
-                                            <option value="document">Dokumen Berkas</option>
-                                            <option value="auth">Account</option>
-                                            <option value="security">Security</option>
-                                            <option value="user_management">Agent</option>
-                                            <option value="documentation">Change</option>
-                                        </select>
+                                    <div>
+                                        <span class="text-[10px] text-slate-400 block mb-1">Sampai:</span>
+                                        <input type="date" x-model="filters.date_to" class="w-full text-xs rounded-xl border-slate-300 focus:border-blue-500 py-1.5 text-slate-700">
                                     </div>
-
-                                    <!-- 3. Performed by Filter -->
-                                    <div class="space-y-1.5">
-                                        <label class="block text-xs font-medium text-slate-600">
-                                            Performed by
-                                        </label>
-                                        <select x-model="filters.user_id" class="w-full text-xs font-normal rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 py-2 text-slate-700 bg-white">
-                                            <option value="semua">Select User</option>
-                                            @foreach($users as $user)
-                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <!-- 4. Search Keyword -->
-                                    <div class="space-y-1.5">
-                                        <label class="block text-xs font-medium text-slate-600">
-                                            Search
-                                        </label>
-                                        <div class="relative">
-                                            <input type="text" 
-                                                   x-model="filters.search" 
-                                                   placeholder="Search logs..."
-                                                   class="w-full text-xs font-normal rounded-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 pl-8 py-2 text-slate-700">
-                                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Drawer Footer (Persis Acme Screenshot 2: Cancel & Apply) -->
-                                <div class="p-4 border-t border-slate-100 flex items-center justify-end gap-2.5 bg-slate-50/50">
-                                    <button type="button" 
-                                            @click="openFilterDrawer = false" 
-                                            class="px-4 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 transition-colors cursor-pointer">
-                                        Cancel
-                                    </button>
-                                    <button type="button" 
-                                            @click="applyFilters()" 
-                                            class="px-5 py-2 rounded-md bg-[#1e293b] hover:bg-[#0f172a] text-white text-xs font-medium shadow-xs transition-colors cursor-pointer">
-                                        Apply
-                                    </button>
                                 </div>
                             </div>
 
+                            <!-- 2. What changed? Filter -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-semibold text-slate-600">
+                                    Kategori Perubahan (What changed?)
+                                </label>
+                                <select x-model="filters.category" class="w-full text-xs font-normal rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 py-2 text-slate-700 bg-white">
+                                    <option value="semua">Semua Tipe Kategori</option>
+                                    <option value="job_package">Job Package</option>
+                                    <option value="document">Dokumen Berkas</option>
+                                    <option value="auth">Account (Sesi Pengguna)</option>
+                                    <option value="security">Security (2FA & Keamanan)</option>
+                                    <option value="user_management">User Management</option>
+                                    <option value="documentation">Dokumentasi Beranda</option>
+                                </select>
+                            </div>
+
+                            <!-- 3. Performed by Filter -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-semibold text-slate-600">
+                                    Pelaku Aksi (Performed by)
+                                </label>
+                                <select x-model="filters.user_id" class="w-full text-xs font-normal rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 py-2 text-slate-700 bg-white">
+                                    <option value="semua">Semua Pengguna</option>
+                                    @foreach($users as $user)
+                                        <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->username }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- 4. Search Keyword -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-semibold text-slate-600">
+                                    Pencarian Kata Kunci (Search)
+                                </label>
+                                <div class="relative">
+                                    <input type="text" 
+                                           x-model="filters.search" 
+                                           placeholder="Cari deskripsi, aksi, atau IP..."
+                                           class="w-full text-xs font-normal rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500/20 pl-8 py-2 text-slate-700">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Drawer Footer -->
+                        <div class="p-3.5 px-5 border-t border-slate-100 flex items-center justify-end gap-2.5 bg-slate-50/80 shrink-0">
+                            <button type="button" 
+                                    @click="openFilterDrawer = false" 
+                                    class="px-4 py-2 rounded-xl border border-slate-300/80 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors cursor-pointer">
+                                Batal
+                            </button>
+                            <button type="button" 
+                                    @click="applyFilters()" 
+                                    class="px-5 py-2 rounded-xl bg-[#0f2b5c] hover:bg-[#0a1d40] text-white text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer">
+                                Terapkan Filter
+                            </button>
                         </div>
                     </div>
                 </div>

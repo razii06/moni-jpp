@@ -32,4 +32,9 @@ class User extends Authenticatable
     {
         return $this->role === 'staff';
     }
+
+    public function hasTwoFactor(): bool
+    {
+        return !empty($this->google2fa_secret);
+    }
 }

@@ -59,9 +59,25 @@
             ];
 
             // --- BAGIAN TREN BEBAN KERJA PROYEK AKTIF (OPSI 1) ---
-            $startDate = $request->input('start_date', Carbon::now()->startOfYear()->format('Y-m-d'));
-            $endDate   = $request->input('end_date', Carbon::now()->endOfYear()->format('Y-m-d'));
-            $groupBy   = $request->input('group_by', 'monthly');
+            try {
+                $parsedStart = Carbon::parse($request->input('start_date', Carbon::now()->startOfYear()->format('Y-m-d')));
+            } catch (\Throwable) {
+                $parsedStart = Carbon::now()->startOfYear();
+            }
+
+            try {
+                $parsedEnd = Carbon::parse($request->input('end_date', Carbon::now()->endOfYear()->format('Y-m-d')));
+            } catch (\Throwable) {
+                $parsedEnd = Carbon::now()->endOfYear();
+            }
+
+            if ($parsedStart->gt($parsedEnd)) {
+                [$parsedStart, $parsedEnd] = [$parsedEnd, $parsedStart];
+            }
+
+            $startDate = $parsedStart->format('Y-m-d');
+            $endDate   = $parsedEnd->format('Y-m-d');
+            $groupBy   = in_array($request->input('group_by'), ['daily', 'weekly', 'monthly']) ? $request->input('group_by') : 'monthly';
 
             // Ambil seluruh paket pekerjaan aktif
             $allJobs = JobPackage::where('status', '!=', 'batal')->get();

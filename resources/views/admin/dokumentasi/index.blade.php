@@ -41,7 +41,7 @@
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-slate-900">Daftar Media</h1>
-                        <p class="text-xs text-slate-500">Kelola foto kegiatan, dokumen PDF, dan tautan video beranda.</p>
+                        <p class="text-xs text-slate-500">Kelola foto kegiatan dan tautan video dokumentasi beranda.</p>
                     </div>
                 </div>
 
@@ -60,15 +60,15 @@
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                         Semua Media
                     </a>
-                    <a href="{{ route('admin.dokumentasi.index', ['tab' => 'foto_video']) }}" 
-                        class="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all {{ request('tab') === 'foto_video' ? 'bg-white text-blue-900 shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
+                    <a href="{{ route('admin.dokumentasi.index', ['tab' => 'foto']) }}" 
+                        class="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all {{ request('tab') === 'foto' ? 'bg-white text-blue-900 shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        Foto & Video
+                        Foto Kegiatan
                     </a>
-                    <a href="{{ route('admin.dokumentasi.index', ['tab' => 'pdf']) }}" 
-                        class="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all {{ request('tab') === 'pdf' ? 'bg-white text-blue-900 shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        Dokumen PDF
+                    <a href="{{ route('admin.dokumentasi.index', ['tab' => 'video']) }}" 
+                        class="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all {{ request('tab') === 'video' ? 'bg-white text-blue-900 shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        Tautan Video
                     </a>
                 </div>
 
@@ -133,13 +133,8 @@
                                         <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200/60 bg-slate-100">
                                             @if($item->kategori === 'Foto Kegiatan')
                                                 <img src="{{ $previewUrl }}" alt="{{ $item->judul }}" class="h-full w-full object-cover">
-                                            @elseif($item->kategori === 'Dokumen PDF')
-                                                <div class="flex flex-col items-center justify-center text-rose-500">
-                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V7.5L14.5 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                                    <span class="text-[8px] font-black tracking-tight">PDF</span>
-                                                </div>
                                             @else
-                                                <div class="flex h-full w-full items-center justify-center bg-blue-50 text-blue-600">
+                                                <div class="flex h-full w-full items-center justify-center bg-indigo-50 text-indigo-600">
                                                     <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                                 </div>
                                             @endif
@@ -155,10 +150,6 @@
                                 <td class="py-3.5 px-4">
                                     @if($item->kategori === 'Foto Kegiatan')
                                         <span class="inline-flex items-center rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 border border-blue-100">
-                                            {{ $item->kategori }}
-                                        </span>
-                                    @elseif($item->kategori === 'Dokumen PDF')
-                                        <span class="inline-flex items-center rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 border border-rose-100">
                                             {{ $item->kategori }}
                                         </span>
                                     @else
@@ -263,7 +254,6 @@
                             <select name="kategori" x-model="category" required class="w-full rounded-2xl border border-slate-200 py-2.5 px-3 text-xs font-medium focus:border-blue-500 focus:ring-blue-500 transition">
                                 <option value="">Pilih kategori</option>
                                 <option value="Foto Kegiatan">Foto Kegiatan</option>
-                                <option value="Dokumen PDF">Dokumen PDF</option>
                                 <option value="Tautan Video">Tautan Video</option>
                             </select>
                         </div>
@@ -314,10 +304,10 @@
 
                         {{-- Form File Upload --}}
                         <div x-show="category !== 'Tautan Video'">
-                            <label class="mb-1.5 block text-xs font-bold text-slate-700">Berkas File (JPG, PNG, WEBP, PDF)</label>
+                            <label class="mb-1.5 block text-xs font-bold text-slate-700">Berkas Foto (JPG, PNG, WEBP)</label>
                             <div class="group relative flex min-h-[120px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 p-4 transition hover:border-blue-400 bg-slate-50/50">
                                 
-                                <input type="file" name="file_upload" :disabled="category === 'Tautan Video'" accept="image/jpeg,image/png,image/webp,application/pdf" @change="handleFileChange($event)" class="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer">
+                                <input type="file" name="file_upload" :disabled="category === 'Tautan Video'" accept="image/jpeg,image/png,image/webp" @change="handleFileChange($event)" class="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer">
 
                                 {{-- Tampilan Default (Belum Ada File) --}}
                                 <template x-if="!fileName">

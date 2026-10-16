@@ -38,6 +38,7 @@ Route::middleware(['auth', App\Http\Middleware\Check2FA::class, 'throttle:120,1'
     // User Management
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::post('/users/{user}/reset-2fa', [UserController::class, 'reset2FA'])->name('users.reset-2fa');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
     // System Logs

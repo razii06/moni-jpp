@@ -14,7 +14,11 @@ class UserController extends Controller
     {
         $users = auth()->user()->isAdmin() ? User::latest()->get() : collect();
 
-        return view('admin.users.index', compact('users'));
+        $totalUsers = $users->count();
+        $twoFactorCount = $users->filter(fn($u) => !empty($u->google2fa_secret))->count();
+        $twoFactorPercent = $totalUsers > 0 ? round(($twoFactorCount / $totalUsers) * 100) : 0;
+
+        return view('admin.users.index', compact('users', 'totalUsers', 'twoFactorCount', 'twoFactorPercent'));
     }
 
     public function store(Request $request)
@@ -73,5 +77,35 @@ class UserController extends Controller
         ]);
 
         return back()->with('success', 'Pengguna berhasil dihapus.');
+    }
+
+    public function reset2FA(User $user)
+    {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
+
+        if (empty($user->google2fa_secret)) {
+            return back()->with('warning', "Akun {$user->name} belum mengaktifkan 2FA.");
+        }
+
+        $userName = $user->name;
+        $userEmail = $user->email;
+
+        $user->google2fa_secret = null;
+        $user->save();
+
+        if (auth()->id() === $user->id) {
+            request()->session()->forget('2fa_passed');
+        }
+
+        \App\Models\SystemLog::create([
+            'user_id'     => auth()->id(),
+            'action'      => 'RESET 2FA USER',
+            'description' => "Mereset kunci Two-Factor Authentication (2FA) untuk akun: {$userName} ({$userEmail}).",
+            'ip_address'  => request()->ip()
+        ]);
+
+        return back()->with('success', "Autentikasi 2FA untuk akun {$userName} berhasil direset.");
     }
 }

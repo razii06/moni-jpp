@@ -304,10 +304,10 @@ class JobPackageController extends Controller
             abort(403, 'Hanya Admin yang dapat menghapus Job Package secara permanen.');
         }
 
-        if (env('FILESYSTEM_DISK') === 'google') {
+        if (config('filesystems.default') === 'google') {
             try {
                 $drive = new GoogleDriveService();
-                $rootFolderId = env('GOOGLE_DRIVE_FOLDER_JPP', env('GOOGLE_DRIVE_FOLDER_ID'));
+                $rootFolderId = config('filesystems.disks.google.folder_jpp') ?? env('GOOGLE_DRIVE_FOLDER_JPP', env('GOOGLE_DRIVE_FOLDER_ID'));
                 $drive->deleteFolderByJobPackage(
                     $jobPackage->google_drive_folder_id,
                     $rootFolderId,
@@ -371,7 +371,7 @@ class JobPackageController extends Controller
             $isUrl = filter_var($filePathOrUrl, FILTER_VALIDATE_URL);
 
             if ($isUrl) {
-                if (env('FILESYSTEM_DISK') === 'google') {
+                if (config('filesystems.default') === 'google') {
                     try {
                         preg_match('/[-\w]{25,}/', $filePathOrUrl, $matches);
                         $fileId = $matches[0] ?? null;
@@ -399,7 +399,7 @@ class JobPackageController extends Controller
     public function downloadDocument(Request $request, JobPackage $jobPackage, string $field)
     {
         if (!in_array($field, $this->docFields) || empty($jobPackage->$field)) {
-            abort(404, 'Dokumen belum diunggah.');
+            return back()->with('error', 'Dokumen belum diunggah atau tidak ditemukan.');
         }
 
         $files = is_array($jobPackage->$field) ? $jobPackage->$field : [$jobPackage->$field];
@@ -407,7 +407,7 @@ class JobPackageController extends Controller
         $targetFile = $files[$index] ?? $files[0] ?? null;
 
         if (!$targetFile) {
-            abort(404, 'File spesifik tidak ditemukan.');
+            return back()->with('error', 'Berkas spesifik tidak ditemukan.');
         }
 
         if (filter_var($targetFile, FILTER_VALIDATE_URL)) {
@@ -418,7 +418,7 @@ class JobPackageController extends Controller
         $cleanPath = ltrim(str_replace(['public/', 'storage/'], '', $rawPath), '/');
 
         if (!Storage::disk('public')->exists($cleanPath)) {
-            abort(404, "Berkas fisik tidak ditemukan: storage/app/public/{$cleanPath}");
+            return back()->with('error', 'Berkas fisik tidak ditemukan di penyimpanan server (kemungkinan telah dipindahkan atau belum tersinkronisasi).');
         }
 
         $fullPath = Storage::disk('public')->path($cleanPath);

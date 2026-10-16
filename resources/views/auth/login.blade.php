@@ -128,7 +128,7 @@
 
                     <!-- Google reCAPTCHA Widget -->
                     <div class="flex justify-center pt-2">
-                        <div class="g-recaptcha" data-theme="light" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
+                        <div class="g-recaptcha" data-theme="light" data-sitekey="{{ config('services.recaptcha.site_key') ?? env('RECAPTCHA_SITE_KEY') }}"></div>
                     </div>
 
                     <!-- Submit Button -->

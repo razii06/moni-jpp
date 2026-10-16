@@ -32,8 +32,9 @@ class LoginRequest extends FormRequest
             'username' => ['required', 'string'],
             'password' => ['required', 'string'],
             'g-recaptcha-response' => ['required', function ($attribute, $value, $fail) {
+                $secretKey = config('services.recaptcha.secret_key') ?? env('RECAPTCHA_SECRET_KEY');
                 $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                    'secret' => env('RECAPTCHA_SECRET_KEY'),
+                    'secret' => $secretKey,
                     'response' => $value,
                     'remoteip' => request()->ip()
                 ]);

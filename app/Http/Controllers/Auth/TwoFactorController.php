@@ -16,6 +16,18 @@ class TwoFactorController extends Controller
     // Halaman untuk memasukkan kode OTP saat login
     public function showVerifyForm()
     {
+        $user = Auth::user();
+
+        // Jika user tidak login atau belum mengaktifkan 2FA, arahkan langsung ke dashboard
+        if (!$user || empty($user->google2fa_secret)) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Jika sudah lolos verifikasi 2FA pada sesi ini, langsung ke dashboard
+        if (session('2fa_passed')) {
+            return redirect()->route('admin.dashboard');
+        }
+
         return view('auth.2fa_verify');
     }
 
@@ -25,10 +37,21 @@ class TwoFactorController extends Controller
         $request->validate(['otp' => 'required|numeric']);
 
         $user = Auth::user();
-        $google2fa = new Google2FA();
-        
-        // Cek toleransi waktu (window = 1 artinya toleransi 30 detik sebelum dan sesudah)
-        $valid = $google2fa->verifyKey($user->google2fa_secret, $request->otp, 1);
+
+        // Pengaman: Jika user tidak memiliki 2FA aktif, tidak perlu verifikasi
+        if (!$user || empty($user->google2fa_secret)) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        $valid = false;
+
+        try {
+            $google2fa = new Google2FA();
+            // Cek toleransi waktu (window = 1 artinya toleransi 30 detik sebelum dan sesudah)
+            $valid = $google2fa->verifyKey($user->google2fa_secret, (string) $request->otp, 1);
+        } catch (\Throwable $e) {
+            $valid = false;
+        }
 
         if ($valid) {
             $request->session()->put('2fa_passed', true);
@@ -87,8 +110,13 @@ class TwoFactorController extends Controller
             return back()->with('error', 'Sesi setup habis, silakan muat ulang halaman.');
         }
 
-        $google2fa = new Google2FA();
-        $valid = $google2fa->verifyKey($secret, $request->otp, 1);
+        $valid = false;
+        try {
+            $google2fa = new Google2FA();
+            $valid = $google2fa->verifyKey($secret, (string) $request->otp, 1);
+        } catch (\Throwable $e) {
+            $valid = false;
+        }
 
         if ($valid) {
             $user->google2fa_secret = $secret;

@@ -13,9 +13,24 @@ use Illuminate\Validation\Rule;
 
 class DokumentasiController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $dokumentasi = Dokumentasi::latest()->paginate(10);
+        $query = Dokumentasi::latest();
+
+        if ($request->filled('tab')) {
+            if ($request->tab === 'foto') {
+                $query->where('kategori', 'Foto Kegiatan');
+            } elseif ($request->tab === 'video') {
+                $query->where('kategori', 'Tautan Video');
+            }
+        }
+
+        if ($request->filled('search')) {
+            $query->where('judul', 'like', '%' . $request->search . '%');
+        }
+
+        $dokumentasi = $query->paginate(10)->withQueryString();
+
         return view('admin.dokumentasi.index', compact('dokumentasi'));
     }
 
@@ -26,14 +41,14 @@ class DokumentasiController extends Controller
 
         $validated = $request->validate([
             'judul' => ['required', 'string', 'max:255'],
-            'kategori' => ['required', Rule::in(['Foto Kegiatan', 'Dokumen PDF', 'Tautan Video'])],
+            'kategori' => ['required', Rule::in(['Foto Kegiatan', 'Tautan Video'])],
             'visibilitas' => ['required', Rule::in(['publik', 'privat'])],
             'file_upload' => [
                 Rule::requiredIf(fn () => $request->input('kategori') !== 'Tautan Video'),
                 'nullable',
                 'file',
                 'max:10240',
-                'mimetypes:image/jpeg,image/png,image/webp,application/pdf',
+                'mimetypes:image/jpeg,image/png,image/webp',
             ],
             'tautan_video' => [
                 Rule::requiredIf(fn () => $request->input('kategori') === 'Tautan Video'),
